@@ -38,4 +38,4 @@ RegisterFile gprf (
 ## Notes
 - Register 0 always reads as zero, regardless of writes.
 - Writes occur on the falling edge of the clock when write_enable is high.
-- Reads are combinational (asynchronous).
+- Reads are combinational.
