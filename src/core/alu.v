@@ -20,7 +20,7 @@
  * 4'b1011 - SRA  (A >>> B[4:0]) - Arithmetic shift right
  * 4'b1100 - ROL  (A rotated left by B[4:0]) - Rotate left
  * 4'b1101 - ROR  (A rotated right by B[4:0]) - Rotate right
-*/
+ */
 
 module ALU (
     input [31:0] A,              // First operand

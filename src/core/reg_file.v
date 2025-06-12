@@ -5,7 +5,7 @@
  * @details Supports 2 read ports and 1 write port. Read is combinational, 
  * write is synchronous on positive clock edge. Address $0 is hardwired to zero.
  * Requries 5-bit address.
-*/
+ */
 
 module RegisterFile (
     input wire clk,               // Clock signal
@@ -20,6 +20,7 @@ module RegisterFile (
 );
 
     reg [31:0] gpregs [31:0];
+    integer i;
 
     // initialize $0 to zero.
     initial begin
@@ -36,7 +37,6 @@ module RegisterFile (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             // Initialize all registers to zero
-            integer i;
             for (i = 0; i < 32; i = i + 1) begin
                 gpregs[i] <= 32'b0;
             end
