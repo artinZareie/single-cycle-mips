@@ -1,0 +1,39 @@
+# GPRF Test Stimuli - CSV Format
+# Format: rst,address_A,address_B,address_W,write_data,write_enable,expected_reg_A,expected_reg_B
+# Note: Reset is handled by testbench initialization, all test cases assume reset is released
+
+# Test 1: Read from registers 0 and 1 (both should be 0 initially) - NO WRITE
+0,0,1,1,305419896,0,0,0
+
+# Test 2: Write to register 1 - after write, reg 1 will contain new value immediately
+0,0,1,1,305419896,1,0,305419896
+
+# Test 3: Read from register 1 (should contain written data from previous cycle)
+0,0,1,2,999999999,0,0,305419896
+
+# Test 4: Write to register 2 - after write, reg 2 will contain new value immediately
+0,1,2,2,2864434397,1,305419896,2864434397
+
+# Test 5: Read both registers after write to reg 2 in previous cycle
+0,1,2,3,123456789,0,305419896,2864434397
+
+# Test 6: Test writing to register 0 (should be ignored) - reg 0 stays 0, reg 2 unchanged
+0,0,2,0,4294967295,1,0,2864434397
+
+# Test 7: Verify reg 0 is still zero (write ignored), reg 1 unchanged
+0,0,1,5,987654321,0,0,305419896
+
+# Test 8: Read reg 31 (should be 0) and reg 1 before writing to reg 31
+0,31,1,31,1431655765,0,0,305419896
+
+# Test 9: Write to register 31 - after write, reg 31 will contain new value immediately
+0,31,1,31,1431655765,1,1431655765,305419896
+
+# Test 10: Read reg 31 after write (should have data from previous write), reg 2 unchanged
+0,31,2,5,268435455,0,1431655765,2864434397
+
+# Test 11: Write to register 5 - after write, reg 5 will contain new value immediately
+0,1,31,5,268435455,1,305419896,1431655765
+
+# Test 12: Read reg 5 after write (should have new data), reg 31 unchanged
+0,5,31,6,111111111,0,268435455,1431655765

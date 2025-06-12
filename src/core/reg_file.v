@@ -22,9 +22,11 @@ module RegisterFile (
     reg [31:0] gpregs [31:0];
     integer i;
 
-    // initialize $0 to zero.
+    // Initialize all registers to zero at startup
     initial begin
-        gpregs[0] = 32'b0;
+        for (i = 0; i < 32; i = i + 1) begin
+            gpregs[i] = 32'b0;
+        end
     end
 
     // Read logic (combinational)
@@ -34,7 +36,7 @@ module RegisterFile (
     end
 
     // Write logic (synchronous) and reset
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             // Initialize all registers to zero
             for (i = 0; i < 32; i = i + 1) begin
