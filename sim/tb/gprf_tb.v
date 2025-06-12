@@ -49,7 +49,7 @@ module gprf_tb;
     // Clock generation
     initial begin
         clk = 0;
-        forever #(CLK_PERIOD / 2) clk = ~clk; // Toggle clock.
+        forever #(CLK_PERIOD / 2) clk = ~clk;
     end
 
     // Test sequence
@@ -62,44 +62,18 @@ module gprf_tb;
         test_count = 0;
         error_count = 0;
         
-        // Initialize inputs
-        rst = 1;  // Start with reset active
+        // Initialize inputs and apply reset
+        rst = 1;
         address_A = 5'b00000;
         address_B = 5'b00000;
         address_W = 5'b00000;
         write_data = 32'h00000000;
         write_enable = 0;
 
-        $display("Applying reset sequence...");
-        
-        // Hold reset for several clock cycles to ensure proper initialization
+        // Hold reset for several clock cycles
         repeat(5) @(posedge clk);
-        
-        // Check if registers are zero during reset
-        #1;
-        $display("During reset - reg_A (addr 1): %h, reg_B (addr 2): %h", reg_A, reg_B);
-        address_A = 1; address_B = 2; // Check some non-zero registers
-        #1;
-        $display("During reset - reg_A (addr 1): %h, reg_B (addr 2): %h", reg_A, reg_B);
-        address_A = 31; address_B = 5; // Check more registers
-        #1;
-        $display("During reset - reg_A (addr 31): %h, reg_B (addr 5): %h", reg_A, reg_B);
-        
-        rst = 0;  // Release reset
-        $display("Reset released, starting tests...");
-        @(posedge clk);  // Wait one more cycle after reset release
-        
-        // Debug: Check register state immediately after reset
-        address_A = 1; address_B = 2;
-        #1;
-        $display("After reset release - reg_A (addr 1): %h, reg_B (addr 2): %h", reg_A, reg_B);
-        address_A = 31; address_B = 5;
-        #1;
-        $display("After reset release - reg_A (addr 31): %h, reg_B (addr 5): %h", reg_A, reg_B);
-        
-        // Reset addresses for testing
-        address_A = 5'b00000;
-        address_B = 5'b00000;
+        rst = 0;
+        @(posedge clk);
 
         // Open CSV file
         file_handle = $fopen("sim/stimuli/gprf_ports.csv", "r");
@@ -128,14 +102,6 @@ module gprf_tb;
                     // Wait for combinational logic to settle
                     #1;
                     
-                    // Debug: Show actual register file contents for failing tests
-                    if (reg_A !== expected_reg_A || reg_B !== expected_reg_B) begin
-                        $display("DEBUG Test %0d: Inputs applied - rst=%b, addr_A=%d, addr_B=%d, addr_W=%d, write_data=%h, write_en=%b", 
-                                test_count, rst, address_A, address_B, address_W, write_data, write_enable);
-                        $display("DEBUG Test %0d: Internal register check - gpregs[%d]=%h, gpregs[%d]=%h", 
-                                test_count, address_A, uut.gpregs[address_A], address_B, uut.gpregs[address_B]);
-                    end
-                    
                     // Check outputs against expected values
                     if (reg_A !== expected_reg_A) begin
                         $display("Test %0d FAILED: reg_A mismatch - Expected: %h, Got: %h (addr_A=%d)", 
@@ -150,8 +116,8 @@ module gprf_tb;
                     end
                     
                     if (reg_A === expected_reg_A && reg_B === expected_reg_B) begin
-                        $display("Test %0d PASSED: rst=%b, addr_A=%d, addr_B=%d, addr_W=%d, write_data=%h, write_en=%b", 
-                                test_count, rst, address_A, address_B, address_W, write_data, write_enable);
+                        $display("Test %0d PASSED: addr_A=%d, addr_B=%d, addr_W=%d, write_data=%h, write_en=%b", 
+                                test_count, address_A, address_B, address_W, write_data, write_enable);
                     end
                     
                     test_count = test_count + 1;
@@ -176,9 +142,4 @@ module gprf_tb;
         $finish;
     end
 
-    // Monitor changes (optional - can be disabled for cleaner output)
-    // initial begin
-    //     $monitor("Time: %0t | reg_A: %h | reg_B: %h | address_A: %b | address_B: %b | address_W: %b | write_data: %h | write_enable: %b",
-    //              $time, reg_A, reg_B, address_A, address_B, address_W, write_data, write_enable);
-    // end
 endmodule

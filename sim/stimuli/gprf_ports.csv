@@ -1,39 +1,113 @@
 # GPRF Test Stimuli - CSV Format
+# AI-generated; I didn't feel like writing this...
 # Format: rst,address_A,address_B,address_W,write_data,write_enable,expected_reg_A,expected_reg_B
-# Note: Reset is handled by testbench initialization, all test cases assume reset is released
+# Note: Reset is handled by testbench initialization. All test cases assume reset is released.
+# Data written is often address_W * 1000 or similar for easier debugging.
 
-# Test 1: Read from registers 0 and 1 (both should be 0 initially) - NO WRITE
-0,0,1,1,305419896,0,0,0
+# Test 1: Initial state check - Read from a few registers (should be 0 after reset)
+0,1,2,0,0,0,0,0
+0,15,31,0,0,0,0,0
 
-# Test 2: Write to register 1 - after write, reg 1 will contain new value immediately
-0,0,1,1,305419896,1,0,305419896
+# Test 2: Write to R1 (data 1000), expect R0=0, R1=1000 (due to write in same cycle)
+0,0,1,1,1000,1,0,1000
+# Test 3: Read R1 (should be 1000), R2 (should be 0)
+0,1,2,0,0,0,1000,0
 
-# Test 3: Read from register 1 (should contain written data from previous cycle)
-0,0,1,2,999999999,0,0,305419896
+# Test 4: Write to R2 (data 2000), expect R1=1000, R2=2000
+0,1,2,2,2000,1,1000,2000
+# Test 5: Read R2 (should be 2000), R3 (should be 0)
+0,2,3,0,0,0,2000,0
 
-# Test 4: Write to register 2 - after write, reg 2 will contain new value immediately
-0,1,2,2,2864434397,1,305419896,2864434397
+# Test 6: Write to R3 (data 3000), expect R2=2000, R3=3000
+0,2,3,3,3000,1,2000,3000
+# Test 7: Read R1, R3
+0,1,3,0,0,0,1000,3000
 
-# Test 5: Read both registers after write to reg 2 in previous cycle
-0,1,2,3,123456789,0,305419896,2864434397
+# Test 8: Write to R0 (attempt, data 9999), R0 should remain 0, R1 still 1000
+0,0,1,0,9999,1,0,1000
+# Test 9: Read R0, R1 to confirm R0 is still 0
+0,0,1,0,0,0,0,1000
 
-# Test 6: Test writing to register 0 (should be ignored) - reg 0 stays 0, reg 2 unchanged
-0,0,2,0,4294967295,1,0,2864434397
+# Test 10: Write to R5 (data 5000)
+0,0,5,5,5000,1,0,5000
+# Test 11: Write to R5 again (data 5001)
+0,0,5,5,5001,1,0,5001
+# Test 12: Read R5 (should be 5001)
+0,5,0,0,0,0,5001,0
 
-# Test 7: Verify reg 0 is still zero (write ignored), reg 1 unchanged
-0,0,1,5,987654321,0,0,305419896
+# Test 13: Write to R10 (data 10000)
+0,0,10,10,10000,1,0,10000
+# Test 14: Write to R15 (data 15000)
+0,10,15,15,15000,1,10000,15000
+# Test 15: Read R10, R15
+0,10,15,0,0,0,10000,15000
 
-# Test 8: Read reg 31 (should be 0) and reg 1 before writing to reg 31
-0,31,1,31,1431655765,0,0,305419896
+# Test 16: Write to R31 (data 31000)
+0,0,31,31,31000,1,0,31000
+# Test 17: Read R31, R5
+0,31,5,0,0,0,31000,5001
 
-# Test 9: Write to register 31 - after write, reg 31 will contain new value immediately
-0,31,1,31,1431655765,1,1431655765,305419896
+# Comprehensive Write/Read for several registers
+# Write R4 = 4000
+0,0,4,4,4000,1,0,4000
+# Read R4, R1
+0,4,1,0,0,0,4000,1000
+# Write R6 = 6000
+0,0,6,6,6000,1,0,6000
+# Read R6, R2
+0,6,2,0,0,0,6000,2000
+# Write R7 = 7000
+0,0,7,7,7000,1,0,7000
+# Read R7, R3
+0,7,3,0,0,0,7000,3000
+# Write R8 = 8000
+0,0,8,8,8000,1,0,8000
+# Read R8, R4
+0,8,4,0,0,0,8000,4000
+# Write R9 = 9000
+0,0,9,9,9000,1,0,9000
+# Read R9, R5
+0,9,5,0,0,0,9000,5001
 
-# Test 10: Read reg 31 after write (should have data from previous write), reg 2 unchanged
-0,31,2,5,268435455,0,1431655765,2864434397
+# Check some existing values again
+# Read R1, R2
+0,1,2,0,0,0,1000,2000
+# Read R3, R31
+0,3,31,0,0,0,3000,31000
+# Read R10, R15
+0,10,15,0,0,0,10000,15000
 
-# Test 11: Write to register 5 - after write, reg 5 will contain new value immediately
-0,1,31,5,268435455,1,305419896,1431655765
+# Write to a few more registers
+# Write R12 = 12000
+0,0,12,12,12000,1,0,12000
+# Write R13 = 13000
+0,12,13,13,13000,1,12000,13000
+# Write R14 = 14000
+0,13,14,14,14000,1,13000,14000
+# Read R12, R13
+0,12,13,0,0,0,12000,13000
+# Read R13, R14
+0,13,14,0,0,0,13000,14000
 
-# Test 12: Read reg 5 after write (should have new data), reg 31 unchanged
-0,5,31,6,111111111,0,268435455,1431655765
+# Write to R20 = 20000
+0,0,20,20,20000,1,0,20000
+# Write to R21 = 21000
+0,20,21,21,21000,1,20000,21000
+# Write to R22 = 22000
+0,21,22,22,22000,1,21000,22000
+# Read R20, R21
+0,20,21,0,0,0,20000,21000
+# Read R21, R22
+0,21,22,0,0,0,21000,22000
+
+# Final check on a few registers
+# Read R1, R31
+0,1,31,0,0,0,1000,31000
+# Read R15, R20
+0,15,20,0,0,0,15000,20000
+# Read R5, R25 (R25 was never written, should be 0)
+0,5,25,0,0,0,5001,0
+# Write R25 = 25000
+0,0,25,25,25000,1,0,25000
+# Read R25, R0
+0,25,0,0,0,0,25000,0
