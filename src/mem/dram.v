@@ -24,9 +24,9 @@ module DRAM #(
     reg [DATA_WIDTH-1:0] mem [0:ROWS-1][0:COLS-1];
     integer i, j;
 
-    // Address decode: row = addr[31:16], col = addr[15:0]
-    wire [15:0] row = addr[31:16];
-    wire [15:0] col = addr[15:0];
+    // Address decode: for small ADDR_WIDTH, use all bits for col, row=0
+    wire [15:0] row = (ADDR_WIDTH > 16) ? addr[31:16] : 16'd0;
+    wire [15:0] col = (ADDR_WIDTH > 16) ? addr[15:0] : addr[ADDR_WIDTH-1:0];
 
     initial begin
         // Initialize memory to zero
@@ -35,7 +35,6 @@ module DRAM #(
                 mem[i][j] = {DATA_WIDTH{1'b0}};
             end
         end
-        rdata = {DATA_WIDTH{1'b0}};
     end
 
     // Reset logic (zero entire memory)
@@ -49,7 +48,11 @@ module DRAM #(
 
     // Combinational read
     always @(*) begin
-        rdata = mem[row][col];
+        if (rst) begin
+            rdata = {DATA_WIDTH{1'b0}};
+        end else begin
+            rdata = mem[row][col];
+        end
     end
 
     // Write on negative clock edge
