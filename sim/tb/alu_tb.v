@@ -25,7 +25,6 @@ module alu_tb;
     reg [200*8-1:0] line_buffer;
     reg [32*8-1:0] op_name;
 
-    // Simple operation name function (no $sformatf)
     function [32*8-1:0] get_op_name;
         input [3:0] alu_ctrl;
         begin
