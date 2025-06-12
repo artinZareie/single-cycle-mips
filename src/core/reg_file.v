@@ -36,7 +36,7 @@ module RegisterFile (
     end
 
     // Write logic (synchronous) and reset
-    always @(posedge clk) begin
+    always @(negedge clk) begin
         if (rst) begin
             // Initialize all registers to zero
             for (i = 0; i < 32; i = i + 1) begin
