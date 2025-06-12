@@ -49,7 +49,7 @@ module ALU (
             4'b1100: ALUResult = (A << B[4:0]) | (A >> (32 - B[4:0]));      // ROL (Rotate left)
             4'b1101: ALUResult = (A >> B[4:0]) | (A << (32 - B[4:0]));      // ROR (Rotate right)
             4'b1110: ALUResult = ($signed(A) < $signed(B)) ? 32'd1 : 32'd0; // SLT (Set Less Than)
-            4'b1111: ALUResult = (A < B) ? 32'd1 : 32'd0;                     // SLTU (Set Less Than Unsigned)
+            4'b1111: ALUResult = (A < B) ? 32'd1 : 32'd0;                   // SLTU (Set Less Than Unsigned)
             default: ALUResult = 32'h00000000;                              // Zero by default
         endcase
         
