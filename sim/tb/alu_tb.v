@@ -7,7 +7,7 @@
 module alu_tb;
 
     parameter CLK_PERIOD = 10;
-    parameter MAX_TESTS = 100;
+    parameter MAX_TESTS = 200;
 
     reg clk;
     reg [31:0] A_tb;
