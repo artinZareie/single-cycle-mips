@@ -23,11 +23,11 @@
 */
 
 module ALU (
-    input [31:0] A, // First operand
-    input [31:0] B, // Second operand
-    input [3:0] ALUControl, // Control signal to determine operation
+    input [31:0] A,              // First operand
+    input [31:0] B,              // Second operand
+    input [3:0] ALUControl,      // Control signal to determine operation
     output reg [31:0] ALUResult, // Result of the ALU operation
-    output reg Zero // Zero flag
+    output reg Zero              // Zero flag
 );
 
     always @(*) begin
@@ -39,7 +39,7 @@ module ALU (
             4'b0100: ALUResult = A ^ B;                                    // XOR
             4'b0101: ALUResult = A | B;                                    // OR
             4'b0110: ALUResult = ~A;                                       // NOT
-            4'b0111: ALUResult = -A;                                       // NEG
+            4'b0111: ALUResult = -A;                                       // NEG (2's Complement negation)
             4'b1000: ALUResult = A << B[4:0];                              // SLL (Logical shift left)
             4'b1001: ALUResult = A >> B[4:0];                              // SRL (Logical shift right)
             4'b1010: ALUResult = A <<< B[4:0];                             // SLA (Arithmetic shift left)
