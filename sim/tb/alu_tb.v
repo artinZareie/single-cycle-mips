@@ -44,6 +44,8 @@ module alu_tb;
                 4'b1011: get_op_name = "SRA (A>>>B) ";
                 4'b1100: get_op_name = "ROL (A rol) ";
                 4'b1101: get_op_name = "ROR (A ror) ";
+                4'b1110: get_op_name = "SLT (A<B)   ";
+                4'b1111: get_op_name = "SLTU (A<B)  ";
                 default: get_op_name = "UNKNOWN     ";
             endcase
         end
@@ -77,7 +79,9 @@ module alu_tb;
             $display("ERROR: Could not open alu_ports.csv file");
             $finish;
         end
+
         $display("Starting ALU testbench with CSV stimuli...");
+
         while (!$feof(file_handle) && test_count < MAX_TESTS) begin
             scan_result = $fgets(line_buffer, file_handle);
             if (scan_result && line_buffer[0] != "#" && line_buffer[0] != "\n" && line_buffer[0] != "\r") begin
@@ -105,11 +109,13 @@ module alu_tb;
                 end
             end
         end
+
         $fclose(file_handle);
         $display("\n=== Test Summary ===");
         $display("Total tests:   %0d", test_count);
         $display("Failed tests:  %0d", error_count);
         $display("Passed tests:  %0d", test_count - error_count);
+
         if (error_count == 0 && test_count > 0) begin
             $display("All tests PASSED!");
         end else if (test_count == 0) begin
@@ -117,6 +123,7 @@ module alu_tb;
         end else begin
             $display("Some tests FAILED!");
         end
+
         $finish;
     end
 

@@ -54,21 +54,26 @@ module gprf_tb;
         address_W = 0;
         write_data = 0;
         write_enable = 0;
+
         repeat(5) @(posedge clk);
         rst = 0;
         @(posedge clk);
+
         file_handle = $fopen("sim/stimuli/gprf_ports.csv", "r");
         if (file_handle == 0) begin
             $display("ERROR: Could not open gprf_ports.csv file");
             $finish;
         end
+
         $display("Starting GPRF testbench with CSV stimuli...");
+
         while (!$feof(file_handle) && test_count < MAX_TESTS) begin
             scan_result = $fgets(line_buffer, file_handle);
             if (scan_result && line_buffer[0] != "#" && line_buffer[0] != "\n") begin
                 scan_result = $sscanf(line_buffer, "%d,%d,%d,%d,%d,%d,%d,%d",
                     rst, address_A, address_B, address_W, write_data, write_enable,
                     expected_reg_A, expected_reg_B);
+
                 if (scan_result == 8) begin
                     @(posedge clk);
                     #1;
@@ -90,11 +95,13 @@ module gprf_tb;
                 end
             end
         end
+
         $fclose(file_handle);
         $display("\n=== Test Summary ===");
         $display("Total tests:   %0d", test_count);
         $display("Failed tests:  %0d", error_count);
         $display("Passed tests:  %0d", test_count - error_count);
+
         if (error_count == 0 && test_count > 0) begin
             $display("All tests PASSED!");
         end else if (test_count == 0) begin
@@ -102,6 +109,7 @@ module gprf_tb;
         end else begin
             $display("Some tests FAILED!");
         end
+
         $finish;
     end
 

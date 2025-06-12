@@ -20,6 +20,8 @@
  * 4'b1011 - SRA  (A >>> B[4:0]) - Arithmetic shift right
  * 4'b1100 - ROL  (A rotated left by B[4:0]) - Rotate left
  * 4'b1101 - ROR  (A rotated right by B[4:0]) - Rotate right
+ * 4'b1110 - SLT  (Set Less Than) - Outputs 1 if A < B (signed), else 0
+ * 4'b1111 - SLTU (Set Less Than Unsigned) - Outputs 1 if A < B (unsigned), else 0
  */
 
 module ALU (
@@ -32,21 +34,23 @@ module ALU (
 
     always @(*) begin
         case (ALUControl)
-            4'b0000: ALUResult = A + B;                                    // ADD
-            4'b0001: ALUResult = A - B;                                    // SUB
-            4'b0010: ALUResult = A * B;                                    // MUL
-            4'b0011: ALUResult = A & B;                                    // AND
-            4'b0100: ALUResult = A ^ B;                                    // XOR
-            4'b0101: ALUResult = A | B;                                    // OR
-            4'b0110: ALUResult = ~A;                                       // NOT
-            4'b0111: ALUResult = -A;                                       // NEG (2's Complement negation)
-            4'b1000: ALUResult = A << B[4:0];                              // SLL (Logical shift left)
-            4'b1001: ALUResult = A >> B[4:0];                              // SRL (Logical shift right)
-            4'b1010: ALUResult = A <<< B[4:0];                             // SLA (Arithmetic shift left)
-            4'b1011: ALUResult = A >>> B[4:0];                             // SRA (Arithmetic shift right)
-            4'b1100: ALUResult = (A << B[4:0]) | (A >> (32 - B[4:0]));     // ROL (Rotate left)
-            4'b1101: ALUResult = (A >> B[4:0]) | (A << (32 - B[4:0]));     // ROR (Rotate right)
-            default: ALUResult = 32'h00000000;                             // Zero by default
+            4'b0000: ALUResult = A + B;                                     // ADD
+            4'b0001: ALUResult = A - B;                                     // SUB
+            4'b0010: ALUResult = A * B;                                     // MUL
+            4'b0011: ALUResult = A & B;                                     // AND
+            4'b0100: ALUResult = A ^ B;                                     // XOR
+            4'b0101: ALUResult = A | B;                                     // OR
+            4'b0110: ALUResult = ~A;                                        // NOT
+            4'b0111: ALUResult = -A;                                        // NEG (2's Complement negation)
+            4'b1000: ALUResult = A << B[4:0];                               // SLL (Logical shift left)
+            4'b1001: ALUResult = A >> B[4:0];                               // SRL (Logical shift right)
+            4'b1010: ALUResult = A <<< B[4:0];                              // SLA (Arithmetic shift left)
+            4'b1011: ALUResult = A >>> B[4:0];                              // SRA (Arithmetic shift right)
+            4'b1100: ALUResult = (A << B[4:0]) | (A >> (32 - B[4:0]));      // ROL (Rotate left)
+            4'b1101: ALUResult = (A >> B[4:0]) | (A << (32 - B[4:0]));      // ROR (Rotate right)
+            4'b1110: ALUResult = ($signed(A) < $signed(B)) ? 32'd1 : 32'd0; // SLT (Set Less Than)
+            4'b1111: ALUResult = (A < B) ? 32'd1 : 32'd0;                     // SLTU (Set Less Than Unsigned)
+            default: ALUResult = 32'h00000000;                              // Zero by default
         endcase
         
         // Set Zero flag
