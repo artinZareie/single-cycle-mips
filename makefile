@@ -23,6 +23,14 @@ DRAM_TB = sim/tb/dram_tb.v
 IMMEXT_RTL = src/core/immext.v
 IMMEXT_TB = sim/tb/immext_tb.v
 
+# Mux21 specific files
+MUX21_RTL = src/helpers/mux21.v
+MUX21_TB = sim/tb/mux21_tb.v
+
+# Mux41 specific files
+MUX41_RTL = src/helpers/mux41.v
+MUX41_TB = sim/tb/mux41_tb.v
+
 all: sim
 
 sim: $(RTL_FILES) $(TB_FILES)
@@ -62,10 +70,26 @@ test_immext: $(IMMEXT_RTL) $(IMMEXT_TB)
 wave_immext: test_immext
 	$(WAVEFORM_VIEWER) build/immext_tb.vcd &
 
+test_mux21: $(MUX21_RTL) $(MUX21_TB)
+	@mkdir -p build
+	$(VERILOG_COMPILER) -o build/mux21_sim.out $(MUX21_RTL) $(MUX21_TB)
+	$(SIMULATOR) build/mux21_sim.out
+
+wave_mux21: test_mux21
+	$(WAVEFORM_VIEWER) build/mux21_tb.vcd &
+
+test_mux41: $(MUX41_RTL) $(MUX41_TB)
+	@mkdir -p build
+	$(VERILOG_COMPILER) -o build/mux41_sim.out $(MUX41_RTL) $(MUX41_TB)
+	$(SIMULATOR) build/mux41_sim.out
+
+wave_mux41: test_mux41
+	$(WAVEFORM_VIEWER) build/mux41_tb.vcd &
+
 wave_sim: sim
 	$(WAVEFORM_VIEWER) build/sim.vcd &
 
 clean:
 	rm -rf build/
 
-.PHONY: all sim clean test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext
+.PHONY: all sim clean test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41
