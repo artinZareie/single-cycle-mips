@@ -4,7 +4,7 @@ VFLAGS = -o build/sim.out
 SIMULATOR = vvp
 WAVEFORM_VIEWER = gtkwave
 
-RTL_FILES = $(shell find ./src/core -name "*.v") src/cpu_top_level.v
+RTL_FILES = $(shell find ./src -name "*.v")
 TB_FILES = $(shell find ./sim/tb -name "*.v")
 
 # GPRF specific files
