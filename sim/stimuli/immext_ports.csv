@@ -1,0 +1,19 @@
+# ImmExt test stimuli
+# Format: immediate,is_signed,expected_imm_ext
+# immediate: 16-bit input value
+# is_signed: 1 for signed extension, 0 for unsigned extension
+# expected_imm_ext: expected 32-bit output value
+
+# Unsigned extension tests (is_signed = 0)
+0x0000,0,0x00000000
+0x1234,0,0x00001234
+0x5678,0,0x00005678
+0xABCD,0,0x0000ABCD
+0xFFFF,0,0x0000FFFF
+
+# Signed extension tests (is_signed = 1)
+0x0000,1,0x00000000
+0x1234,1,0x00001234
+0x5678,1,0x00005678
+0x8000,1,0xFFFF8000
+0xFFFF,1,0xFFFFFFFF

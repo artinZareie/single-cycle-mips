@@ -19,6 +19,10 @@ ALU_TB = sim/tb/alu_tb.v
 DRAM_RTL = src/mem/dram.v
 DRAM_TB = sim/tb/dram_tb.v
 
+# ImmExt specific files
+IMMEXT_RTL = src/core/immext.v
+IMMEXT_TB = sim/tb/immext_tb.v
+
 all: sim
 
 sim: $(RTL_FILES) $(TB_FILES)
@@ -50,10 +54,18 @@ test_dram: $(DRAM_RTL) $(DRAM_TB)
 wave_dram: test_dram
 	$(WAVEFORM_VIEWER) build/dram_tb.vcd &
 
+test_immext: $(IMMEXT_RTL) $(IMMEXT_TB)
+	@mkdir -p build
+	$(VERILOG_COMPILER) -o build/immext_sim.out $(IMMEXT_RTL) $(IMMEXT_TB)
+	$(SIMULATOR) build/immext_sim.out
+
+wave_immext: test_immext
+	$(WAVEFORM_VIEWER) build/immext_tb.vcd &
+
 wave_sim: sim
 	$(WAVEFORM_VIEWER) build/sim.vcd &
 
 clean:
 	rm -rf build/
 
-.PHONY: all sim clean test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram
+.PHONY: all sim clean test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext
