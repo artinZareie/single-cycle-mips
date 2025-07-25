@@ -89,7 +89,38 @@ wave_mux41: test_mux41
 wave_sim: sim
 	$(WAVEFORM_VIEWER) build/sim.vcd &
 
+format:
+	@echo "Formatting Verilog files with verible..."
+	@if command -v verible-verilog-format >/dev/null 2>&1; then \
+		echo "Found verible-verilog-format, formatting files..."; \
+		find ./src -name "*.v" -exec verible-verilog-format --inplace \
+			--indentation_spaces=0 \
+			--wrap_spaces=0 \
+			--assignment_statement_alignment=infer \
+			--case_items_alignment=infer \
+			--formal_parameters_indentation=indent \
+			--module_net_variable_alignment=infer \
+			--port_declarations_indentation=indent \
+			{} \; ; \
+		find ./sim -name "*.v" -exec verible-verilog-format --inplace \
+			--indentation_spaces=0 \
+			--wrap_spaces=0 \
+			--assignment_statement_alignment=infer \
+			--case_items_alignment=infer \
+			--formal_parameters_indentation=indent \
+			--module_net_variable_alignment=infer \
+			--port_declarations_indentation=indent \
+			{} \; ; \
+		echo "Formatting complete!"; \
+	else \
+		echo "ERROR: verible-verilog-format not found!"; \
+		echo "Please install verible tools:"; \
+		echo "  Ubuntu/Debian: sudo apt install verible"; \
+		echo "  Or download from: https://github.com/chipsalliance/verible/releases"; \
+		exit 1; \
+	fi
+
 clean:
 	rm -rf build/
 
-.PHONY: all sim clean test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41
+.PHONY: all sim clean format test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41
