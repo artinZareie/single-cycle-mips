@@ -1,0 +1,7 @@
+# This is the top-most .editorconfig file
+root = true
+
+# Apply these rules to all files
+[*]
+indent_style = space
+indent_size = 2
