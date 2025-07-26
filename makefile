@@ -123,6 +123,15 @@ format:
 		{} \;
 	@echo "Formatting complete!"
 
+count:
+	@echo "Counting Verilog lines..."
+	@echo "Source files:"
+	@find ./src -name "*.v" -exec wc -l {} + | tail -1
+	@echo "Testbench files:"
+	@find ./sim -name "*.v" -exec wc -l {} + | tail -1
+	@echo "Total:"
+	@find ./src ./sim -name "*.v" -exec wc -l {} + | tail -1
+
 clean:
 	rm -rf build/
 
