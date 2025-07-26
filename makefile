@@ -31,6 +31,14 @@ MUX21_TB = sim/tb/mux21_tb.v
 MUX41_RTL = src/helpers/mux41.v
 MUX41_TB = sim/tb/mux41_tb.v
 
+# InstMem specific files
+IMEM_RTL = src/mem/imem.v src/mem/dram.v
+IMEM_TB = sim/tb/imem_tb.v
+
+# DataMem specific files
+DMEM_RTL = src/mem/dmem.v src/mem/dram.v
+DMEM_TB = sim/tb/dmem_tb.v
+
 all: sim
 
 sim: $(RTL_FILES) $(TB_FILES)
@@ -86,41 +94,36 @@ test_mux41: $(MUX41_RTL) $(MUX41_TB)
 wave_mux41: test_mux41
 	$(WAVEFORM_VIEWER) build/mux41_tb.vcd &
 
+test_imem: $(IMEM_RTL) $(IMEM_TB)
+	@mkdir -p build
+	$(VERILOG_COMPILER) -o build/imem_sim.out $(IMEM_RTL) $(IMEM_TB)
+	$(SIMULATOR) build/imem_sim.out
+
+wave_imem: test_imem
+	$(WAVEFORM_VIEWER) build/imem_tb.vcd &
+
+test_dmem: $(DMEM_RTL) $(DMEM_TB)
+	@mkdir -p build
+	$(VERILOG_COMPILER) -o build/dmem_sim.out $(DMEM_RTL) $(DMEM_TB)
+	$(SIMULATOR) build/dmem_sim.out
+
+wave_dmem: test_dmem
+	$(WAVEFORM_VIEWER) build/dmem_tb.vcd &
+
 wave_sim: sim
 	$(WAVEFORM_VIEWER) build/sim.vcd &
 
 format:
-	@echo "Formatting Verilog files with verible..."
-	@if command -v verible-verilog-format >/dev/null 2>&1; then \
-		echo "Found verible-verilog-format, formatting files..."; \
-		find ./src -name "*.v" -exec verible-verilog-format --inplace \
-			--indentation_spaces=0 \
-			--wrap_spaces=0 \
-			--assignment_statement_alignment=infer \
-			--case_items_alignment=infer \
-			--formal_parameters_indentation=indent \
-			--module_net_variable_alignment=infer \
-			--port_declarations_indentation=indent \
-			{} \; ; \
-		find ./sim -name "*.v" -exec verible-verilog-format --inplace \
-			--indentation_spaces=0 \
-			--wrap_spaces=0 \
-			--assignment_statement_alignment=infer \
-			--case_items_alignment=infer \
-			--formal_parameters_indentation=indent \
-			--module_net_variable_alignment=infer \
-			--port_declarations_indentation=indent \
-			{} \; ; \
-		echo "Formatting complete!"; \
-	else \
-		echo "ERROR: verible-verilog-format not found!"; \
-		echo "Please install verible tools:"; \
-		echo "  Ubuntu/Debian: sudo apt install verible"; \
-		echo "  Or download from: https://github.com/chipsalliance/verible/releases"; \
-		exit 1; \
-	fi
+	@echo "Formatting Verilog files..."
+	find ./src -name "*.v" -exec verible-verilog-format --inplace \
+		--indentation_spaces=4 \
+		{} \;
+	find ./sim -name "*.v" -exec verible-verilog-format --inplace \
+		--indentation_spaces=4 \
+		{} \;
+	@echo "Formatting complete!"
 
 clean:
 	rm -rf build/
 
-.PHONY: all sim clean format test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41
+.PHONY: all sim clean format test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41 test_imem wave_imem test_dmem wave_dmem
