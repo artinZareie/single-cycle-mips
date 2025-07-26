@@ -35,7 +35,7 @@ module alu_tb;
                 4'b0011: get_op_name = "AND (A&B)   ";
                 4'b0100: get_op_name = "XOR (A^B)   ";
                 4'b0101: get_op_name = "OR  (A|B)   ";
-                4'b0110: get_op_name = "NOT (~A)    ";
+                4'b0110: get_op_name = "NOR (~(A|B))";
                 4'b0111: get_op_name = "NEG (-A)    ";
                 4'b1000: get_op_name = "SLL (A<<B)  ";
                 4'b1001: get_op_name = "SRL (A>>B)  ";

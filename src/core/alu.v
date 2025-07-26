@@ -2,7 +2,7 @@
  * @file src/core/alu.v
  * @brief ALU (Arithmetic Logic Unit) module for MIPS processor.
  * @author Artin Zarei | Mohsen Mirzaei
- * @details Supports: add, sub, mul, and, xor, or, not, neg, logical shift,
+* @details Supports: add, sub, mul, and, xor, or, nor, neg, logical shift,
  * arithmetic shift, logical rotate.
  * ALU Control Signal Mapping:
  * 4'b0000 - ADD  (A + B)
@@ -11,7 +11,7 @@
  * 4'b0011 - AND  (A & B)
  * 4'b0100 - XOR  (A ^ B)
  * 4'b0101 - OR   (A | B)
- * 4'b0110 - NOT  (~A)
+* 4'b0110 - NOR  (~(A | B))
  * 4'b0111 - NEG  (-A)
  * 4'b1000 - SLL  (A << B[4:0]) - Logical shift left
  * 4'b1001 - SRL  (A >> B[4:0]) - Logical shift right
@@ -39,7 +39,7 @@ module ALU (
             4'b0011: ALUResult = A & B;  // AND
             4'b0100: ALUResult = A ^ B;  // XOR
             4'b0101: ALUResult = A | B;  // OR
-            4'b0110: ALUResult = ~A;  // NOT
+            4'b0110: ALUResult = ~(A | B);  // NOR
             4'b0111: ALUResult = -A;  // NEG (2's Complement negation)
             4'b1000: ALUResult = A << B[4:0];  // SLL (Logical shift left)
             4'b1001: ALUResult = A >> B[4:0];  // SRL (Logical shift right)

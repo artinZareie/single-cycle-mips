@@ -11,7 +11,7 @@ The ALU is a combinational module that performs arithmetic and logic operations 
 | 3          | AND (A & B)              | Bitwise AND                                 |
 | 4          | XOR (A ^ B)              | Bitwise XOR                                 |
 | 5          | OR  (A \| B)             | Bitwise OR                                  |
-| 6          | NOT (~A)                 | Bitwise NOT (on A)                          |
+| 6          | NOR (~(A | B))           | Bitwise NOR (on A, B)                       |
 | 7          | NEG (-A)                 | Two's complement negation of A              |
 | 8          | SLL (A << B[4:0])        | Logical shift left                          |
 | 9          | SRL (A >> B[4:0])        | Logical shift right                         |

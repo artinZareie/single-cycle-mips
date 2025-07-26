@@ -9,7 +9,7 @@
 #  3: AND  (A & B)
 #  4: XOR  (A ^ B)
 #  5: OR   (A | B)
-#  6: NOT  (~A)
+#  6: NOR  (~(A | B))
 #  7: NEG  (-A)
 #  8: SLL  (A << B[4:0])
 #  9: SRL  (A >> B[4:0])
@@ -104,10 +104,10 @@
 # 0x0 | 0xFFFFFFFF = 0xFFFFFFFF
 0,4294967295,5,4294967295,0
 
-# --- NOT ---
-# ~0x0 = 0xFFFFFFFF
+# --- NOR ---
+# ~(0x0 | 0x0) = 0xFFFFFFFF
 0,0,6,4294967295,0
-# ~0xFFFFFFFF = 0x0 (Zero)
+# ~(0xFFFFFFFF | 0xFFFFFFFF) = 0x0 (Zero)
 4294967295,0,6,0,1
 # ~0x1 = 0xFFFFFFFE
 1,0,6,4294967294,0
