@@ -30,7 +30,6 @@ module dram_tb;
     integer write_enable_csv;
     integer addr_csv;
 
-    // Instantiate DRAM with small size for simulation
     DRAM #(
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH),
