@@ -53,10 +53,7 @@ module crypt_tb;
             $finish;
         end
 
-        $display("Starting Crypt module testbench with CSV stimuli...");
-        $display("Testing XOR-based symmetric encryption/decryption");
-        $display("Format: data_in XOR key = data_out");
-        $display("===============================================");
+        $display("Starting Crypt testbench with CSV stimuli...");
 
         while (!$feof(
             file_handle
@@ -72,16 +69,14 @@ module crypt_tb;
                     #1;
 
                     if (data_out_tb !== expected_data_out) begin
-                        $display("FAIL [%0d] Crypt XOR operation failed", test_count);
-                        $display("  Data:     0x%08h (%0d)", data_in_tb, data_in_tb);
-                        $display("  Key:      0x%08h (%0d)", key_tb, key_tb);
-                        $display("  Result:   0x%08h (%0d)", data_out_tb, data_out_tb);
-                        $display("  Expected: 0x%08h (%0d)", expected_data_out, expected_data_out);
-                        $display("");
+                        $display(
+                            "FAIL [%0d] XOR (Data^Key)\n  Data=0x%08h  Key=0x%08h\n  Result:   0x%08h\n  Expected: 0x%08h",
+                            test_count, data_in_tb, key_tb, data_out_tb, expected_data_out);
                         error_count = error_count + 1;
                     end else begin
-                        $display("PASS [%0d] Data=0x%08h  Key=0x%08h  Result=0x%08h", test_count,
-                                 data_in_tb, key_tb, data_out_tb);
+                        $display(
+                            "PASS [%0d] XOR (Data^Key)  Data=0x%08h  Key=0x%08h  Result=0x%08h",
+                            test_count, data_in_tb, key_tb, data_out_tb);
                     end
 
                     test_count = test_count + 1;
@@ -89,22 +84,18 @@ module crypt_tb;
             end
         end
 
-        // Close file and display results
         $fclose(file_handle);
-
-        $display("\n=== Crypt Module Test Summary ===");
+        $display("\n=== Test Summary ===");
         $display("Total tests:   %0d", test_count);
         $display("Failed tests:  %0d", error_count);
         $display("Passed tests:  %0d", test_count - error_count);
 
         if (error_count == 0 && test_count > 0) begin
-            $display("All tests PASSED! ✓");
-            $display("XOR encryption/decryption working correctly.");
+            $display("All tests PASSED!");
         end else if (test_count == 0) begin
             $display("No test vectors found or processed from CSV.");
         end else begin
-            $display("Some tests FAILED! ✗");
-            $display("Check the Crypt module implementation.");
+            $display("Some tests FAILED!");
         end
 
         // Additional validation: Test symmetric property
@@ -187,7 +178,7 @@ module crypt_tb;
                         i, original_data, encryption_key, encrypted_data, decrypted_data);
                     sym_errors = sym_errors + 1;
                 end else begin
-                    $display("SYM_PASS [%0d] Original=0x%08h Key=0x%08h ✓", i, original_data,
+                    $display("SYM_PASS [%0d] Original=0x%08h Key=0x%08h", i, original_data,
                              encryption_key);
                 end
             end
