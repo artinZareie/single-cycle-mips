@@ -1,6 +1,6 @@
 # Single-Cycle MIPS' ISA
 
-This customized version of MIPS' ISA includes 32 instructions: R-type, I-type, and J-type.
+This customized version of MIPS' ISA includes 33 instructions: R-type, I-type, and J-type.
 
 ## R-type Instruction Format
 
@@ -14,13 +14,13 @@ the result in a third (or second, in case of a shift/rotate) register.
 Overall convention (except for shifts/rotates):
 
 ```
-rd = rs * rt
+rd = rs op rt
 ```
 
 But for Shift/Rotate, the convention is:
 
 ```
-rd = rs <<<>>> shamt
+rd = rt shift/rotate shamt
 ```
 
 ## I-type Instruction Format
@@ -35,7 +35,7 @@ into a register.
 Overall Convention is:
 
 ```
-rt = rs * imm
+rt = rs op imm
 ```
 
 Note: For logical operations (andi, ori, xori), the 16-bit immediate is zero-extended to 32 bits.
@@ -88,8 +88,31 @@ Address mode is absolute, not PC-relative.
 | `beq` | I | `0x04` | | `beq rs, rt, label` | `if (rs == rt) branch`. |
 | `bne` | I | `0x05` | | `bne rs, rt, label` | `if (rs != rt) branch`. |
 | `bltz` | I | `0x01` | | `bltz rs, label` | `if (rs < 0) branch`. |
-| `blez` | I | `0x06` | | `blez rs, label` | `if (rs <= 0) branch`. |
 | `bgtz` | I | `0x07` | | `bgtz rs, label` | `if (rs > 0) branch`. |
-| `bgez` | I | `0x07` | | `bgez rs, label` | `if (rs >= 0) branch`. |
 | `j` | J | `0x02` | | `j label` | `PC = jump_target`. |
 | `jal` | J | `0x03` | | `jal label` | `$ra = PC + 4; PC = jump_target`. |
+
+## Opcode Summary
+
+**R-type Instructions (opcode 0x00):**
+- All R-type instructions use opcode 0x00 and are distinguished by their function codes
+- Function codes: 0x00, 0x02, 0x03, 0x08, 0x09, 0x19, 0x1A, 0x1C, 0x20, 0x22, 0x24, 0x25, 0x26, 0x27, 0x2A, 0x2B, 0x30, 0x31
+
+**I-type Instructions:**
+- 0x01: bltz
+- 0x04: beq  
+- 0x05: bne
+- 0x07: bgtz
+- 0x08: addi
+- 0x0A: slti
+- 0x0B: sltiu
+- 0x0C: andi
+- 0x0D: ori
+- 0x0E: xori
+- 0x0F: lui
+- 0x23: lw
+- 0x2B: sw
+
+**J-type Instructions:**
+- 0x02: j
+- 0x03: jal
