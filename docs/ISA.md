@@ -1,6 +1,6 @@
 # Single-Cycle MIPS' ISA
 
-This customized version of MIPS' ISA includes 33 instructions: R-type, I-type, and J-type.
+This customized version of MIPS' ISA includes 38 instructions: R-type, I-type, and J-type.
 
 ## R-type Instruction Format
 
@@ -17,10 +17,16 @@ Overall convention (except for shifts/rotates):
 rd = rs op rt
 ```
 
-But for Shift/Rotate, the convention is:
+But for Shift/Rotate with immediate, the convention is:
 
 ```
 rd = rt shift/rotate shamt
+```
+
+For Variable Shift/Rotate (using register), the convention is:
+
+```
+rd = rt shift/rotate rs[4:0]
 ```
 
 ## I-type Instruction Format
@@ -60,7 +66,7 @@ Address mode is absolute, not PC-relative.
 |:---|:---:|:---:|:---:|:---|:---|
 | `add` | R | `0x00` | `0x20` | `add rd, rs, rt` | `rd = rs + rt` (signed). |
 | `sub` | R | `0x00` | `0x22` | `sub rd, rs, rt` | `rd = rs - rt` (signed). |
-| `mul` | R | `0x00` | `0x1C` | `mul rd, rs, rt` | `rd = rs * rt`. |
+| `mul` | R | `0x00` | `0x18` | `mul rd, rs, rt` | `rd = rs * rt`. |
 | `and` | R | `0x00` | `0x24` | `and rd, rs, rt` | `rd = rs & rt`. |
 | `or` | R | `0x00` | `0x25` | `or rd, rs, rt` | `rd = rs \| rt`. |
 | `xor` | R | `0x00` | `0x26` | `xor rd, rs, rt` | `rd = rs ^ rt`. |
@@ -68,8 +74,13 @@ Address mode is absolute, not PC-relative.
 | `sll` | R | `0x00` | `0x00` | `sll rd, rt, shamt` | `rd = rt << shamt`. |
 | `srl` | R | `0x00` | `0x02` | `srl rd, rt, shamt` | `rd = rt >> shamt` (logical). |
 | `sra` | R | `0x00` | `0x03` | `sra rd, rt, shamt` | `rd = rt >> shamt` (arithmetic, preserves sign). |
-| `rol` | R | `0x00` | `0x19` | `rol rd, rt, shamt` | `rd = rotate rt left by shamt`. |
-| `ror` | R | `0x00` | `0x1A` | `ror rd, rt, shamt` | `rd = rotate rt right by shamt`. |
+| `sllv` | R | `0x00` | `0x04` | `sllv rd, rt, rs` | `rd = rt << rs[4:0]` (variable shift left). |
+| `srlv` | R | `0x00` | `0x06` | `srlv rd, rt, rs` | `rd = rt >> rs[4:0]` (variable shift right logical). |
+| `srav` | R | `0x00` | `0x07` | `srav rd, rt, rs` | `rd = rt >> rs[4:0]` (variable shift right arithmetic). |
+| `rol` | R | `0x00` | `0x1C` | `rol rd, rt, shamt` | `rd = rotate rt left by shamt`. |
+| `ror` | R | `0x00` | `0x1D` | `ror rd, rt, shamt` | `rd = rotate rt right by shamt`. |
+| `rolv` | R | `0x00` | `0x1E` | `rolv rd, rt, rs` | `rd = rotate rt left by rs[4:0]`. |
+| `rorv` | R | `0x00` | `0x1F` | `rorv rd, rt, rs` | `rd = rotate rt right by rs[4:0]`. |
 | `slt` | R | `0x00` | `0x2A` | `slt rd, rs, rt` | `rd = (rs < rt)` (signed compare). |
 | `sltu` | R | `0x00` | `0x2B` | `sltu rd, rs, rt` | `rd = (rs < rt)` (unsigned compare). |
 | `enc` | R | `0x00` | `0x30` | `enc rd, rs, rt` | `rd = encrypt(rs, rt)`. |
@@ -96,11 +107,11 @@ Address mode is absolute, not PC-relative.
 
 **R-type Instructions (opcode 0x00):**
 - All R-type instructions use opcode 0x00 and are distinguished by their function codes
-- Function codes: 0x00, 0x02, 0x03, 0x08, 0x09, 0x19, 0x1A, 0x1C, 0x20, 0x22, 0x24, 0x25, 0x26, 0x27, 0x2A, 0x2B, 0x30, 0x31
+- Function codes: 0x00, 0x02, 0x03, 0x04, 0x06, 0x07, 0x08, 0x09, 0x18, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x22, 0x24, 0x25, 0x26, 0x27, 0x2A, 0x2B, 0x30, 0x31
 
 **I-type Instructions:**
 - 0x01: bltz
-- 0x04: beq  
+- 0x04: beq 
 - 0x05: bne
 - 0x07: bgtz
 - 0x08: addi
