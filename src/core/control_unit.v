@@ -24,22 +24,20 @@ module ControlUnit (
     output wire SignExtend  // high if sign extension is needed for immediate values
 );
 
-    // Combinational logic for control signals
 
-    // Branch signal - high for branch instructions
+    // high for branch instructions
     assign Branch = (opcode == 6'h04) || (opcode == 6'h05) || (opcode == 6'h01) || (opcode == 6'h07);
 
-    // Jump signal - high for jump instructions (j, jal, jr, jalr)
+    // high for jump instructions (j, jal, jr, jalr)
     assign Jump = (opcode == 6'h02) || (opcode == 6'h03) || 
                   (opcode == 6'h00 && (funct == 6'h08 || funct == 6'h09));
 
-    // Memory Read - only for lw
+    // only for lw
     assign MemRead = (opcode == 6'h23);
 
-    // Memory Write - only for sw
+    // only for sw
     assign MemWrite = (opcode == 6'h2B);
 
-    // Register Write Source
     assign RegWriteSrc = (opcode == 6'h23) ? 2'b01 :  // Memory data (lw)
         ((opcode == 6'h03) || (opcode == 6'h00 && funct == 6'h09)) ? 2'b10 :  // PC+4 (jal, jalr)
         (opcode == 6'h00 && (funct == 6'h30 || funct == 6'h31)) ? 2'b11 :      // Crypt output (enc, dec)
@@ -59,12 +57,11 @@ module ControlUnit (
                    (opcode == 6'h0A) || (opcode == 6'h0B) || (opcode == 6'h0F) ||
                    (opcode == 6'h23) || (opcode == 6'h2B);
 
-    // Sign Extension - high for arithmetic operations and memory operations
+    // high for arithmetic operations and memory operations
     assign SignExtend = (opcode == 6'h08) || (opcode == 6'h0A) || (opcode == 6'h0B) ||  // addi, slti, sltiu
         (opcode == 6'h23) || (opcode == 6'h2B) ||  // lw, sw
         (opcode == 6'h04) || (opcode == 6'h05) || (opcode == 6'h01) || (opcode == 6'h07);  // branches
 
-    // ALU Operation
     assign ALUOp = (opcode == 6'h00) ? ((funct == 6'h20) ? 4'b0000 :  // add
         (funct == 6'h22) ? 4'b0001 :  // sub
         (funct == 6'h18) ? 4'b0010 :  // mul
@@ -96,8 +93,8 @@ module ControlUnit (
         (opcode == 6'h2B) ? 4'b0000 :  // sw (add for address)
         (opcode == 6'h04) ? 4'b0001 :  // beq (subtract for comparison)
         (opcode == 6'h05) ? 4'b0001 :  // bne (subtract for comparison)
-        (opcode == 6'h01) ? 4'b0000 :  // bltz (pass through)
-        (opcode == 6'h07) ? 4'b0000 :  // bgtz (pass through)
+        (opcode == 6'h01) ? 4'b0000 :  // bltz
+        (opcode == 6'h07) ? 4'b0000 :  // bgtz
         4'b0000;  // default
 
 endmodule

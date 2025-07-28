@@ -47,7 +47,9 @@ rt = rs op imm
 Note: For logical operations (andi, ori, xori), the 16-bit immediate is zero-extended to 32 bits.
 For arithmetic operations (addi), the immediate is sign-extended to 32 bits.
 
-But for branches, address mode is PC-relative. Dislocation is calculated relative to PC + 4.
+But for branches, address mode is PC-relative. Displacement is calculated relative to PC + 4.
+
+**Note:** Branch instructions `bltz` and `bgez` use opcode 0x01 with the `rt` field used to specify the branch condition type (0x00 for bltz, 0x01 for bgez).
 
 ## J-type Instruction Format
 
@@ -98,22 +100,21 @@ Address mode is absolute, not PC-relative.
 | `sw` | I | `0x2B` | | `sw rt, imm(rs)` | `MEM[rs + imm] = rt` (32-bit store). |
 | `beq` | I | `0x04` | | `beq rs, rt, label` | `if (rs == rt) branch`. |
 | `bne` | I | `0x05` | | `bne rs, rt, label` | `if (rs != rt) branch`. |
-| `bltz` | I | `0x01` | | `bltz rs, label` | `if (rs < 0) branch`. |
-| `bgtz` | I | `0x07` | | `bgtz rs, label` | `if (rs > 0) branch`. |
+| `bltz` | I | `0x01` | | `bltz rs, label` | `if (rs < 0) branch` (rt field = 0x00). |
+| `bgez` | I | `0x01` | | `bgez rs, label` | `if (rs >= 0) branch` (rt field = 0x01). |
 | `j` | J | `0x02` | | `j label` | `PC = jump_target`. |
 | `jal` | J | `0x03` | | `jal label` | `$ra = PC + 4; PC = jump_target`. |
 
 ## Opcode Summary
 
 **R-type Instructions (opcode 0x00):**
-- All R-type instructions use opcode 0x00 and are distinguished by their function codes
-- Function codes: 0x00, 0x02, 0x03, 0x04, 0x06, 0x07, 0x08, 0x09, 0x18, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x22, 0x24, 0x25, 0x26, 0x27, 0x2A, 0x2B, 0x30, 0x31
+- All R-type instructions use opcode 0x00.
+- Function codes: 0x00 (sll), 0x02 (srl), 0x03 (sra), 0x04 (sllv), 0x06 (srlv), 0x07 (srav), 0x08 (jr), 0x09 (jalr), 0x18 (mul), 0x1C (rol), 0x1D (ror), 0x1E (rolv), 0x1F (rorv), 0x20 (add), 0x22 (sub), 0x24 (and), 0x25 (or), 0x26 (xor), 0x27 (nor), 0x2A (slt), 0x2B (sltu), 0x30 (enc), 0x31 (dec)
 
 **I-type Instructions:**
-- 0x01: bltz
+- 0x01: bltz (rt=0x00), bgez (rt=0x01)
 - 0x04: beq 
 - 0x05: bne
-- 0x07: bgtz
 - 0x08: addi
 - 0x0A: slti
 - 0x0B: sltiu
@@ -127,3 +128,11 @@ Address mode is absolute, not PC-relative.
 **J-type Instructions:**
 - 0x02: j
 - 0x03: jal
+
+## Key MIPS Compliance Notes
+
+1. **Branch Instructions:** `bltz` and `bgez` both use opcode 0x01, with the `rt` field distinguishing between them (0x00 for bltz, 0x01 for bgez). This follows the standard MIPS encoding where these are variants of the same base instruction.
+
+2. **R-type Instructions:** All R-type instructions use opcode 0x00 and are distinguished by their function codes as shown in the opcode summary.
+
+3. **Address Calculation:** Jump target addresses are formed by concatenating PC[31:28] with the 26-bit address field shifted left by 2 bits.
