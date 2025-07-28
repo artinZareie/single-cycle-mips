@@ -1,6 +1,6 @@
 # Single-Cycle MIPS' ISA
 
-This customized version of MIPS' ISA includes 30 instructions: R-type, I-type, and J-type.
+This customized version of MIPS' ISA includes 32 instructions: R-type, I-type, and J-type.
 
 ## R-type Instruction Format
 
