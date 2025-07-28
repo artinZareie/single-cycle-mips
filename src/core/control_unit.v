@@ -43,7 +43,7 @@ module ControlUnit (
         (opcode == 6'h00 && (funct == 6'h30 || funct == 6'h31)) ? 2'b11 :      // Crypt output (enc, dec)
         2'b00;  // ALU result (default)
 
-    // Register Write - high for most instructions except branches, jumps (except jal/jalr), and sw
+    // high for most instructions except branches, jumps (except jal/jalr), and sw. They don't change GPRF.
     assign RegWrite = ~((opcode == 6'h04) || (opcode == 6'h05) || (opcode == 6'h01) || (opcode == 6'h07) ||  // branches
         (opcode == 6'h02) ||  // j
         (opcode == 6'h2B) ||  // sw
