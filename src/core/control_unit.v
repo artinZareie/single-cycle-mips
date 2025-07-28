@@ -52,7 +52,7 @@ module ControlUnit (
     // Register Destination - high for R-type instructions (rd), low for I-type (rt)
     assign RegDst = (opcode == 6'h00);
 
-    // ALU Source - high for immediate instructions
+    // high for immediate instructions
     assign ALUSrc = (opcode == 6'h08) || (opcode == 6'h0C) || (opcode == 6'h0D) || (opcode == 6'h0E) ||
                    (opcode == 6'h0A) || (opcode == 6'h0B) || (opcode == 6'h0F) ||
                    (opcode == 6'h23) || (opcode == 6'h2B);
