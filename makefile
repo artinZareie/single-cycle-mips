@@ -39,12 +39,19 @@ IMEM_TB = sim/tb/imem_tb.v
 DMEM_RTL = src/mem/dmem.v src/mem/dram.v
 DMEM_TB = sim/tb/dmem_tb.v
 
+# Crypt specific files
+CRYPT_RTL = src/core/crypt.v
+CRYPT_TB = sim/tb/crypt_tb.v
+
 all: sim
 
 sim: $(RTL_FILES) $(TB_FILES)
 	@mkdir -p build
 	$(VERILOG_COMPILER) $(VFLAGS) $(RTL_FILES) $(TB_FILES)
 	$(SIMULATOR) build/sim.out
+
+test_all: test_gprf test_alu test_dram test_immext test_mux21 test_mux41 test_imem test_dmem test_crypt
+	@echo "All module tests completed!"
 
 test_gprf: $(GPRF_RTL) $(GPRF_TB)
 	@mkdir -p build
@@ -110,6 +117,14 @@ test_dmem: $(DMEM_RTL) $(DMEM_TB)
 wave_dmem: test_dmem
 	$(WAVEFORM_VIEWER) build/dmem_tb.vcd &
 
+test_crypt: $(CRYPT_RTL) $(CRYPT_TB)
+	@mkdir -p build
+	$(VERILOG_COMPILER) -o build/crypt_sim.out $(CRYPT_RTL) $(CRYPT_TB)
+	$(SIMULATOR) build/crypt_sim.out
+
+wave_crypt: test_crypt
+	$(WAVEFORM_VIEWER) build/crypt_tb.vcd &
+
 wave_sim: sim
 	$(WAVEFORM_VIEWER) build/sim.vcd &
 
@@ -135,4 +150,4 @@ count:
 clean:
 	rm -rf build/
 
-.PHONY: all sim clean format test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41 test_imem wave_imem test_dmem wave_dmem
+.PHONY: all sim clean format test_all test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41 test_imem wave_imem test_dmem wave_dmem test_crypt wave_crypt
