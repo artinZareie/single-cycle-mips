@@ -40,5 +40,6 @@ module ControlUnit (
         opcode == 6'h05 || // bne
         opcode == 6'h01 || // bltz, bgez
     );
+    assign 
 
 endmodule
