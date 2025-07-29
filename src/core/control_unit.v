@@ -24,5 +24,21 @@ module ControlUnit (
     output wire SignExtend  // high if sign extension is needed for immediate values
 );
 
+    // Jump things.
+    assign Branch = opcode == 6'h04 || opcode == 6'h05 || opcode == 6'h01; // beq, bne, bltz, bgez
+    assign Jump = (opcode == 6'h00 && (funct == 6'h08 || funct == 6'h09)) || opcode == 6'h02 || opcode == 6'h03; // jal, jr, j, jalr
+
+    // Memory things.
+    assign MemRead = opcode == 6'h23; // lw
+    assign MemWrite = opcode == 6'h2B; // sw
+
+    // GPRF things.
+    assign RegWrite = ~(
+        (opcode == 6'h00 && funct == 6'h08) || // jr
+        opcode == 6'h02 || // j
+        opcode == 6'h04 || // beq
+        opcode == 6'h05 || // bne
+        opcode == 6'h01 || // bltz, bgez
+    );
 
 endmodule
