@@ -129,7 +129,7 @@ Address mode is absolute, not PC-relative.
 - 0x02: j
 - 0x03: jal
 
-## Key MIPS Compliance Notes
+## Key Notes
 
 1. **Branch Instructions:** `bltz` and `bgez` both use opcode 0x01, with the `rt` field distinguishing between them (0x00 for bltz, 0x01 for bgez). This follows the standard MIPS encoding where these are variants of the same base instruction.
 
