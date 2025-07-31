@@ -45,7 +45,7 @@ module ControlUnit (
         (opcode == 6'h00) ? 2'b01 :  // R-type instructions use rd
         2'b00;
 
-    assign RegWriteSrc = (opcode == 6'h00 && (funct == 6'h30 || 6'h31)) ? 2'b11 : // Crypt instructions
+    assign RegWriteSrc = (opcode == 6'h00 && (funct == 6'h30 || funct == 6'h31)) ? 2'b11 : // Crypt instructions
         ((opcode == 6'h00 && funct == 6'h09) || opcode == 6'h03) ? 2'b10 :  // jalr, jal
         (opcode == 6'h23) ? 2'b01 :  // lw
         2'b00;  // ALU result
