@@ -89,10 +89,10 @@ module ControlUnit (
         (opcode == 6'h05) ? 4'b0001 :  // bne
         4'b0000;
 
-    assign SignExtend = opcode == 6'h0C ||  // andi
+    assign SignExtend = ~(opcode == 6'h0C ||  // andi
         opcode == 6'h0D ||  // ori
         opcode == 6'h0E ||  // xori
         opcode == 6'h0F  // lui
-        ;
+        );
 
 endmodule
