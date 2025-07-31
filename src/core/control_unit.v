@@ -92,7 +92,8 @@ module ControlUnit (
     assign SignExtend = ~(opcode == 6'h0C ||  // andi
         opcode == 6'h0D ||  // ori
         opcode == 6'h0E ||  // xori
-        opcode == 6'h0F  // lui
+        opcode == 6'h0F ||  // lui
+        opcode == 6'h0B  // sltiu
         );
 
 endmodule

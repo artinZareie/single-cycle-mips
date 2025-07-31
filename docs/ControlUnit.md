@@ -62,7 +62,7 @@ The Control Unit is responsible for generating control signals.
 | ori | 0x0D | XX | 0 | 0 | 0 | 0 | 00 | 1 | 00 | 0101 | 1 | 0 |
 | xori | 0x0E | XX | 0 | 0 | 0 | 0 | 00 | 1 | 00 | 0100 | 1 | 0 |
 | slti | 0x0A | XX | 0 | 0 | 0 | 0 | 00 | 1 | 00 | 1110 | 1 | 1 |
-| sltiu | 0x0B | XX | 0 | 0 | 0 | 0 | 00 | 1 | 00 | 1111 | 1 | 1 |
+| sltiu | 0x0B | XX | 0 | 0 | 0 | 0 | 00 | 1 | 00 | 1111 | 1 | 0 |
 | lui | 0x0F | XX | 0 | 0 | 0 | 0 | 00 | 1 | 00 | XXXX | 1 | 0 |
 | lw | 0x23 | XX | 0 | 0 | 1 | 0 | 01 | 1 | 00 | 0000 | 1 | 1 |
 | sw | 0x2B | XX | 0 | 0 | 0 | 1 | XX | 0 | XX | 0000 | 1 | 1 |
