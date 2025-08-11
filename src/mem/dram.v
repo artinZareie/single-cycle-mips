@@ -2,43 +2,50 @@
  * @file dram.v
  * @brief DRAM component module (connected to motherboard)
  * @author Artin Zarei | Mohsen Mirzaei
- * @details Sparse memory implementation for simulation efficiency.
- *          Uses associative array to only allocate memory for accessed locations.
+ * @details Memory implementation for simulation.
+ *          Uses a reasonable-sized array for simulation.
  *          Combinational read, write on negative clock edge.
  */
 
 module DRAM #(
     parameter ADDR_WIDTH = 32,     // Address width (bits)
     parameter DATA_WIDTH = 8,      // Data width (bits), 8 for byte-addressable, 32 for word-addressable
-    parameter ROWS       = 65536,  // Kept for backward compatibility (unused)
-    parameter COLS       = 65536   // Kept for backward compatibility (unused)
+    parameter MEM_SIZE   = 1024    // Memory size in words (4KB for a 32-bit memory)
 ) (
     input  wire                  clk,           // Clock signal
     input  wire                  rst,           // Reset signal
     input  wire [ADDR_WIDTH-1:0] addr,          // Address for access
     input  wire [DATA_WIDTH-1:0] wdata,         // Data to write
     input  wire                  write_enable,  // Write enable
-    output wire [DATA_WIDTH-1:0] rdata          // Data read
+    output reg  [DATA_WIDTH-1:0] rdata          // Data read
 );
     
-    // Sparse memory implementation using associative array
-    // Only allocates memory for addresses that are actually written to
-    reg [DATA_WIDTH-1:0] mem[integer];
+    // Memory implementation - sized appropriately for simulation
+    reg [DATA_WIDTH-1:0] mem[0:MEM_SIZE-1];
     
-    // Combinational read - returns 0 for unwritten locations, actual data for written ones
-    assign rdata = rst ? {DATA_WIDTH{1'b0}} : 
-                   mem.exists(addr) ? mem[addr] : {DATA_WIDTH{1'b0}};
+    // Read logic - returns 0 for out-of-bounds addresses
+    always @(*) begin
+        if (rst || addr[ADDR_WIDTH-1:2] >= MEM_SIZE)
+            rdata = {DATA_WIDTH{1'b0}};
+        else
+            rdata = mem[addr[ADDR_WIDTH-1:2]]; // Word-aligned addressing
+    end
     
-    // Sequential write
-    always @(negedge clk) begin
-        if (write_enable && !rst) begin
-            mem[addr] <= wdata;
+    // Write logic
+    always @(posedge clk) begin
+        if (write_enable && !rst && addr[ADDR_WIDTH-1:2] < MEM_SIZE) begin
+            mem[addr[ADDR_WIDTH-1:2]] <= wdata;
         end
     end
     
-    // Reset operation - clears all allocated memory
+    // Reset logic - we don't clear memory on reset to save simulation time
+    // If you need explicit zeroing, uncomment this block
+    /*
+    integer i;
     always @(posedge rst) begin
-        mem.delete();
+        for (i = 0; i < MEM_SIZE; i = i + 1)
+            mem[i] <= {DATA_WIDTH{1'b0}};
     end
+    */
 
 endmodule
