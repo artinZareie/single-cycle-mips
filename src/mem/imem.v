@@ -2,8 +2,8 @@
  * @file src/mem/imem.v
  * @brief Instruction Memory module for MIPS processor.
  * @author Artin Zarei | Mohsen Mirzaei
- * @details Internally, uses DRAM. Handles 32-bit (word) accesses only.
- *          Takes byte addresses but performs word-aligned accesses.
+ * @details Contains a ROM for instruction storage with $readmemh capability.
+ *          Handles 32-bit (word) accesses only, word-aligned.
  */
 
 module InstMem (
@@ -12,21 +12,17 @@ module InstMem (
     output wire [31:0] rdata  // 32-bit instruction output (full word)
 );
 
+    // Simple ROM for instruction storage (1024 words = 4KB)
+    localparam ROM_WORDS = 1024;
+    reg [31:0] rom [0:ROM_WORDS-1];
+    
+    // Load program from hex file
     initial begin
-        //TODO: Load the instruction memory with a program.
+        $readmemh("sim/stimuli/test_program.hex", rom);
     end
-
-    // 32-bit wide DRAM, word-aligned accesses
-    DRAM #(
-        .DATA_WIDTH(32),
-        .ADDR_WIDTH(32)
-    ) dram_inst (
-        .clk         (clk),
-        .rst         (1'b0),
-        .addr        ({addr[31:2], 2'b00}),  // Word-aligned address
-        .wdata       (32'b0), // No write in instruction memory
-        .write_enable(1'b0),
-        .rdata       (rdata)
-    );
+    
+    // Word-aligned read from ROM
+    wire [31:0] word_addr = addr[31:2]; // Convert byte address to word address
+    assign rdata = (word_addr < ROM_WORDS) ? rom[word_addr] : 32'h00000000;
 
 endmodule
