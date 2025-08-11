@@ -1,0 +1,14 @@
+// Simple test program for MIPS CPU
+// Each line is a 32-bit instruction in hexadecimal
+// Comments are allowed (lines starting with //)
+
+20080001  // addi $t0, $zero, 1     (load 1 into $t0)
+2009000F  // addi $t1, $zero, 15    (load 15 into $t1) 
+01094020  // add $t0, $t0, $t1      (add $t0 + $t1 -> $t0)
+AC080020  // sw $t0, 32($zero)      (store $t0 to memory address 32)
+8C0A0020  // lw $t2, 32($zero)      (load from memory address 32 into $t2)
+012A5822  // sub $t3, $t1, $t2      (subtract $t2 from $t1, store in $t3)
+000B6080  // sll $t4, $t3, 2        (shift $t3 left by 2 bits, store in $t4)
+11090003  // beq $t0, $t1, 3        (branch if $t0 equals $t1, skip 3 instructions)
+214A0001  // addi $t2, $t2, 1       (increment $t2 by 1)
+08000000  // j 0x0                  (jump to beginning of program)
