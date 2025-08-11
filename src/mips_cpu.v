@@ -45,7 +45,9 @@ ControlUnit control_unit_inst (
     .ALUOp(alu_op),
     .ALUSrc(alu_src2_sel),
 
-    .SignExtend(is_signed)
+    .SignExtend(is_signed),
+    .ShiftOp(shift_op),
+    .VarShift(var_shift)
 );
 
 // PC address calculations
@@ -80,9 +82,12 @@ InstMem imem_inst (
     .rdata(instruction)
 );
 
-// Decode register addresses from instruction
-assign address_A = instruction[25:21]; // rs
-assign address_B = instruction[20:16]; // rt
+
+// Shift/rotate operand selection
+// For shift/rotate: A=rt, B=shamt (immediate) or rs (variable)
+// For others: A=rs, B=rt/imm
+assign address_A = (shift_op) ? instruction[20:16] : instruction[25:21]; // rt for shift/rotate, else rs
+assign address_B = (shift_op && var_shift) ? instruction[25:21] : instruction[20:16]; // rs for var shift, else rt
 
 wire [31:0] crypt_out;
 
@@ -130,22 +135,24 @@ ImmExt imm_ext_inst (
 );
 
 wire        alu_src2_sel;
-wire [31:0] alu_src2;
 
-Mux21 alu_src_mux_inst (
-    .a(read_data_B),
-    .b(imm_ext_out),
-    .sel(alu_src2_sel),
-    .out(alu_src2)
-);
+// ALU input A selection (rs or rt)
+wire [31:0] alu_in_A;
+assign alu_in_A = read_data_A;
+
+// ALU input B selection: for shift/rotate, use shamt (immediate) or rs (variable); else, use normal logic
+wire [31:0] alu_in_B;
+assign alu_in_B = (shift_op && !var_shift) ? {27'b0, instruction[10:6]} :
+                  (shift_op && var_shift) ? read_data_B :
+                  (alu_src2_sel ? imm_ext_out : read_data_B);
 
 wire [3:0]  alu_op;
 wire [31:0] alu_result;
 wire        alu_zero;
 
 ALU alu_inst (
-    .A(read_data_A),
-    .B(alu_src2),
+    .A(alu_in_A),
+    .B(alu_in_B),
     .ALUControl(alu_op),
     .ALUResult(alu_result),
     .Zero(alu_zero)

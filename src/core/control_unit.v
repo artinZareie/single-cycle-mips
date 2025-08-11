@@ -21,12 +21,28 @@ module ControlUnit (
     output wire [3:0] ALUOp,  // ALU operation code
     output wire ALUSrc,  // high if ALU source is immediate value instead of register
 
-    output wire SignExtend  // high if sign extension is needed for immediate values
+    output wire SignExtend,  // high if sign extension is needed for immediate values
+
+    // New control signals for shift/rotate operand selection
+    output wire ShiftOp,      // high for shift/rotate instructions
+    output wire VarShift      // high for variable shift/rotate (uses rs as shift amount)
 );
 
     // Jump things.
     assign Branch = opcode == 6'h04 || opcode == 6'h05 || opcode == 6'h01;  // beq, bne, bltz, bgez
     assign Jump = (opcode == 6'h00 && (funct == 6'h08 || funct == 6'h09)) || opcode == 6'h02 || opcode == 6'h03; // jal, jr, j, jalr
+
+    // Shift/rotate detection
+    assign ShiftOp = (opcode == 6'h00) && (
+        funct == 6'h00 || funct == 6'h02 || funct == 6'h03 || // sll, srl, sra
+        funct == 6'h1C || funct == 6'h1D ||                   // rol, ror
+        funct == 6'h04 || funct == 6'h06 || funct == 6'h07 || // sllv, srlv, srav
+        funct == 6'h1E || funct == 6'h1F                      // rolv, rorv
+    );
+    assign VarShift = (opcode == 6'h00) && (
+        funct == 6'h04 || funct == 6'h06 || funct == 6'h07 || // sllv, srlv, srav
+        funct == 6'h1E || funct == 6'h1F                      // rolv, rorv
+    );
 
     // Memory things.
     assign MemRead = opcode == 6'h23;  // lw
