@@ -1,6 +1,6 @@
 # GPRF (General Purpose Register File)
 
-The GPRF is a 32x32 register file. It provides two read ports and one write port, allowing simultaneous reading of two registers and writing to one register @negedge clock cycle.
+The GPRF is a 32x32 register file. It provides two read ports and one write port, allowing simultaneous reading of two registers and writing to one register @posedge clock cycle.
 
 ## Features
 - 32 registers, each 32 bits wide
