@@ -1,5 +1,5 @@
 /**
- * @file src/control_unit.v
+ * @file src/mips_cpu.v
  * @MIPS processor implementation
  * @author Artin Zarei | Mohsen Mirzaei
  */
@@ -33,11 +33,9 @@ wire       jump_ctrl;
 ControlUnit control_unit_inst (
     .opcode(instruction[31:26]),
     .funct(instruction[5:0]),
-
-        .Branch(branch_ctrl),
-        .Jump(jump_ctrl),
-
-    .MemRead(),
+    .Branch(branch_ctrl),
+    .Jump(jump_ctrl),
+    .MemRead(/* unused */),
     .MemWrite(mem_write_enable),
     .RegWriteSrc(rf_src_sel),
 
@@ -58,7 +56,7 @@ assign pc_plus_4 = pc + 32'd4;
 assign jump_addr = {pc[31:28], instruction[25:0], 2'b00};
 assign branch_addr = pc_plus_4 + (imm_ext_out << 2);
 
-Mux41 mux41_inst_pc (
+Mux41 pc_mux_inst (
     .a(pc_plus_4),
     .b(branch_addr),
     .c(jump_addr),
@@ -76,7 +74,7 @@ Program_Counter pc_inst (
 );
 
 
-InstMem instmem_inst (
+InstMem imem_inst (
     .clk(clk),
     .addr(pc),
     .rdata(instruction)
@@ -89,7 +87,7 @@ assign address_B = instruction[20:16]; // rt
 wire [31:0] crypt_out;
 
 // Crypto unit (XOR-based)
-Crypt crypt_unit_inst (
+Crypt crypt_inst (
     .data_in(alu_result),
     .key(32'hDEADB3EF),
     .data_out(crypt_out)
@@ -97,7 +95,7 @@ Crypt crypt_unit_inst (
 
 wire [1:0] rf_src_sel;
 
-Mux41 mux41_inst_rf_src (
+Mux41 rf_src_mux_inst (
     .a(alu_result),
     .b(mem_data),
     .c(pc_plus_4),
@@ -132,13 +130,13 @@ ImmExt imm_ext_inst (
 );
 
 wire        alu_src2_sel;
-wire [31:0] mux21_inst_1_out;
+wire [31:0] alu_src2;
 
-Mux21 mux21_inst_1 (
+Mux21 alu_src_mux_inst (
     .a(read_data_B),
     .b(imm_ext_out),
     .sel(alu_src2_sel),
-    .out(mux21_inst_1_out)
+    .out(alu_src2)
 );
 
 wire [3:0]  alu_op;
@@ -147,7 +145,7 @@ wire        alu_zero;
 
 ALU alu_inst (
     .A(read_data_A),
-    .B(mux21_inst_1_out),
+    .B(alu_src2),
     .ALUControl(alu_op),
     .ALUResult(alu_result),
     .Zero(alu_zero)
@@ -161,16 +159,13 @@ assign pc_src_sel = {jump_ctrl, branch_taken};
 wire mem_write_enable;
 wire [31:0] mem_data;
 
-DataMem data_mem_inst (
+DataMem dmem_inst (
     .addr(alu_result),
     .clk(clk),
     .we(mem_write_enable),
     .wdata(read_data_B),
     .rdata(mem_data)
 );
-
-
-
 
 // Debug outputs
 assign pc_debug = pc;
