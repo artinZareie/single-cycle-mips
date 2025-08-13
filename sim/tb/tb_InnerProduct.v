@@ -26,14 +26,14 @@ module tb_InnerProduct();
     parameter MAX_CYCLES = 200;   // Maximum simulation cycles
     
     // Expected test vectors (using individual parameters instead of arrays)
-    parameter [31:0] VECTOR_A_0 = 32'd1;
+    parameter [31:0] VECTOR_A_0 = 32'd5;
     parameter [31:0] VECTOR_A_1 = 32'd2;
-    parameter [31:0] VECTOR_A_2 = 32'd3;
+    parameter [31:0] VECTOR_A_2 = 32'd34;
     parameter [31:0] VECTOR_A_3 = 32'd4;
-    parameter [31:0] VECTOR_B_0 = 32'd5;
+    parameter [31:0] VECTOR_B_0 = 32'd567;
     parameter [31:0] VECTOR_B_1 = 32'd6;
-    parameter [31:0] VECTOR_B_2 = 32'd7;
-    parameter [31:0] VECTOR_B_3 = 32'd8;
+    parameter [31:0] VECTOR_B_2 = 32'd1000;
+    parameter [31:0] VECTOR_B_3 = 32'd0;
     parameter [31:0] EXPECTED_RESULT = 32'd70; // 1*5 + 2*6 + 3*7 + 4*8
     
     // Instantiate the MIPS CPU
