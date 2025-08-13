@@ -18,7 +18,7 @@ module InstMem (
     
     // Load program from hex file
     initial begin
-        $readmemh("sim/stimuli/test_program.hex", rom);
+        $readmemh("sim/stimuli/assembled.hex", rom);
     end
     
     // Word-aligned read from ROM
