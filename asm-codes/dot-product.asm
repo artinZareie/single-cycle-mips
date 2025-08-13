@@ -6,7 +6,7 @@
 
 # Initialize vector pointers
 addi $s0, $0, 0      # $s0 = base address of Vector A (starts at word 0)
-addi $s1, $0, 4      # $s1 = base address of Vector B (starts at word 4)
+addi $s1, $0, 16      # $s1 = base address of Vector B (starts at word 4)
 
 # Initialize loop control variables
 addi $s2, $0, 4      # $s2 = loop limit (4 elements to process)
@@ -25,8 +25,8 @@ loop:
     add $s6, $s6, $t0    # $s6 += A[i] * B[i] (accumulate dot product)
 
     # Move to next elements
-    addi $s0, $s0, 1     # Increment Vector A pointer to next word
-    addi $s1, $s1, 1     # Increment Vector B pointer to next word
+    addi $s0, $s0, 4     # Increment Vector A pointer to next word
+    addi $s1, $s1, 4     # Increment Vector B pointer to next word
     addi $s3, $s3, 1     # Increment loop counter
 
     # Check if all elements processed
