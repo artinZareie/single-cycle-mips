@@ -1,7 +1,7 @@
 /**
  * @file src/mips_cpu.v
- * @MIPS processor implementation
- * @author Artin Zarei | Mohsen Mirzaei
+ * @brief Single-cycle MIPS CPU implementation
+ * @author Artin Zareie | Mohsen Mirzaei
  */
 
 module MIPS_CPU(
@@ -14,22 +14,27 @@ module MIPS_CPU(
     output wire [31:0] mem_data_debug
 );
 
-wire [31:0] next_pc;
-wire [31:0] pc;
+// PC-related signals
+wire [31:0] next_pc, pc, pc_plus_4, jump_addr, branch_addr;
+
+// Instruction and control signals
 wire [31:0] instruction;
+wire [1:0] pc_src_sel, rf_src_sel, reg_dst_sel;
+wire branch_ctrl, jump_ctrl, rf_write_enable, mem_write_enable;
+wire alu_src2_sel, is_signed, shift_op, var_shift;
+wire [3:0] alu_op;
+wire branch_taken;
 
-wire [ 4:0] address_A;
-wire [ 4:0] address_B;
-wire [ 4:0] address_W;
-wire [31:0] write_data;
-wire        rf_write_enable;
-wire [31:0] read_data_A;
-wire [31:0] read_data_B;
+// Register file signals
+wire [4:0] address_A, address_B, address_W;
+wire [31:0] write_data, read_data_A, read_data_B;
 
-wire [1:0] pc_src_sel;
-wire       branch_ctrl;
-wire       jump_ctrl;
+// ALU and memory signals
+wire [31:0] alu_in_A, alu_in_B, alu_result, imm_ext_out;
+wire [31:0] mem_data, crypt_out;
+wire alu_zero;
 
+// Control Unit - Generates all control signals
 ControlUnit control_unit_inst (
     .opcode(instruction[31:26]),
     .funct(instruction[5:0]),
@@ -51,13 +56,11 @@ ControlUnit control_unit_inst (
 );
 
 // PC address calculations
-wire [31:0] pc_plus_4;
-wire [31:0] jump_addr;
-wire [31:0] branch_addr;
 assign pc_plus_4 = pc + 32'd4;
 assign jump_addr = {pc[31:28], instruction[25:0], 2'b00};
 assign branch_addr = pc_plus_4 + (imm_ext_out << 2);
 
+// PC source selection mux: 00=PC+4, 01=branch, 10=jump, 11=unused
 Mux41 pc_mux_inst (
     .a(pc_plus_4),
     .b(branch_addr),
@@ -67,7 +70,7 @@ Mux41 pc_mux_inst (
     .out(next_pc)
 );
 
-
+// Program Counter
 Program_Counter pc_inst (
     .clk(clk),
     .reset(reset),
@@ -75,31 +78,27 @@ Program_Counter pc_inst (
     .pc(pc)
 );
 
-
+// Instruction Memory
 InstMem imem_inst (
     .clk(clk),
     .addr(pc),
     .rdata(instruction)
 );
 
-
-// Shift/rotate operand selection
-// For shift/rotate: A=rt, B=shamt (immediate) or rs (variable)
-// For others: A=rs, B=rt/imm
+// Register address selection for shift/rotate operations
+// For shift/rotate: A=rt (source), B=shamt (immediate) or rs (variable shift amount)
+// For other operations: A=rs, B=rt
 assign address_A = (shift_op) ? instruction[20:16] : instruction[25:21]; // rt for shift/rotate, else rs
 assign address_B = (shift_op && var_shift) ? instruction[25:21] : instruction[20:16]; // rs for var shift, else rt
 
-wire [31:0] crypt_out;
-
-// Crypto unit (XOR-based)
+// Crypto unit (XOR-based encryption/decryption)
 Crypt crypt_inst (
     .data_in(alu_result),
     .key(32'hDEADB3EF),
     .data_out(crypt_out)
 );
 
-wire [1:0] rf_src_sel;
-
+// Register file write data source selection
 Mux41 rf_src_mux_inst (
     .a(alu_result),
     .b(mem_data),
@@ -109,10 +108,10 @@ Mux41 rf_src_mux_inst (
     .out(write_data)
 );
 
-wire [1:0] reg_dst_sel;
-// Destination register: rt (I-type) vs rd (R-type)
+// Destination register selection: rt (I-type) vs rd (R-type)
 assign address_W = reg_dst_sel[0] ? instruction[15:11] : instruction[20:16];
 
+// Register File
 RegisterFile rf_inst (
     .clk(clk),
     .rst(reset),
@@ -125,31 +124,23 @@ RegisterFile rf_inst (
     .reg_B(read_data_B)
 );
 
-wire [31:0] imm_ext_out;
-wire        is_signed;
-
+// Immediate extension
 ImmExt imm_ext_inst (
     .immediate(instruction[15:0]),
     .is_signed(is_signed),
     .imm_ext(imm_ext_out)
 );
 
-wire        alu_src2_sel;
-
-// ALU input A selection (rs or rt)
-wire [31:0] alu_in_A;
+// ALU input A selection (always read_data_A)
 assign alu_in_A = read_data_A;
 
-// ALU input B selection: for shift/rotate, use shamt (immediate) or rs (variable); else, use normal logic
-wire [31:0] alu_in_B;
-assign alu_in_B = (shift_op && !var_shift) ? {27'b0, instruction[10:6]} :
+// ALU input B selection: shamt (immediate), rs (variable shift), or rt/immediate
+wire [31:0] shamt_extended = {27'b0, instruction[10:6]};
+assign alu_in_B = (shift_op && !var_shift) ? shamt_extended :
                   (shift_op && var_shift) ? read_data_B :
                   (alu_src2_sel ? imm_ext_out : read_data_B);
 
-wire [3:0]  alu_op;
-wire [31:0] alu_result;
-wire        alu_zero;
-
+// ALU
 ALU alu_inst (
     .A(alu_in_A),
     .B(alu_in_B),
@@ -159,13 +150,10 @@ ALU alu_inst (
 );
 
 // Branch taken when beq control is high and ALU Zero is set
-wire branch_taken = branch_ctrl & alu_zero;
+assign branch_taken = branch_ctrl & alu_zero;
 assign pc_src_sel = {jump_ctrl, branch_taken};
 
-
-wire mem_write_enable;
-wire [31:0] mem_data;
-
+// Data Memory
 DataMem dmem_inst (
     .addr(alu_result),
     .clk(clk),
