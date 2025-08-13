@@ -47,6 +47,10 @@ CRYPT_TB = sim/tb/crypt_tb.v
 MIPS_CPU_RTL = $(RTL_FILES)
 MIPS_CPU_TB = sim/tb/mips_cpu_tb.v
 
+# Dot Product test specific files
+DOT_PRODUCT_RTL = $(RTL_FILES)
+DOT_PRODUCT_TB = sim/tb/tb_InnerProduct.v
+
 all: sim
 
 sim: $(RTL_FILES) $(TB_FILES)
@@ -54,7 +58,7 @@ sim: $(RTL_FILES) $(TB_FILES)
 	$(VERILOG_COMPILER) $(VFLAGS) $(RTL_FILES) $(TB_FILES)
 	$(SIMULATOR) build/sim.out
 
-test_all: test_gprf test_alu test_dram test_immext test_mux21 test_mux41 test_imem test_dmem test_crypt test_mips_cpu
+test_all: test_gprf test_alu test_dram test_immext test_mux21 test_mux41 test_imem test_dmem test_crypt test_mips_cpu test_dot_product
 	@echo "All module tests completed!"
 
 # MIPS CPU (Top Module) Test
@@ -71,6 +75,16 @@ wave_mips_cpu: test_mips_cpu
 test_cpu: test_mips_cpu
 
 wave_cpu: wave_mips_cpu
+
+# Dot Product Test
+test_dot_product: $(DOT_PRODUCT_RTL) $(DOT_PRODUCT_TB)
+	@mkdir -p build
+	@echo "Testing Dot Product calculation..."
+	$(VERILOG_COMPILER) -o build/dot_product_sim.out $(DOT_PRODUCT_RTL) $(DOT_PRODUCT_TB)
+	$(SIMULATOR) build/dot_product_sim.out
+
+wave_dot_product: test_dot_product
+	$(WAVEFORM_VIEWER) build/tb_InnerProduct.vcd &
 
 test_gprf: $(GPRF_RTL) $(GPRF_TB)
 	@mkdir -p build
@@ -172,6 +186,11 @@ assemble: assembler.py
 	python assembler.py asm-codes/final-test.asm sim/stimuli/test_program.hex clean
 	@echo "Assembly complete! Output: sim/stimuli/test_program.hex"
 
+assemble_dot_product: assembler.py
+	@echo "Assembling dot product program..."
+	python assembler.py asm-codes/dot-product.asm sim/stimuli/test_program.hex clean
+	@echo "Dot product assembly complete! Output: sim/stimuli/test_program.hex"
+
 assemble_with_comments: assembler.py
 	@echo "Running assembler with full comments..."
 	python assembler.py asm-codes/final-test.asm sim/stimuli/test_program_commented.hex full
@@ -181,7 +200,11 @@ assemble_with_comments: assembler.py
 test_full: assemble test_mips_cpu
 	@echo "Full test flow completed!"
 
+# Full dot product test flow: assemble dot product then test
+test_dot_product_full: assemble_dot_product test_dot_product
+	@echo "Full dot product test flow completed!"
+
 clean:
 	rm -rf build/
 
-.PHONY: all sim clean format test_all test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41 test_imem wave_imem test_dmem wave_dmem test_crypt wave_crypt test_mips_cpu wave_mips_cpu test_cpu wave_cpu assemble assemble_with_comments test_full
+.PHONY: all sim clean format test_all test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41 test_imem wave_imem test_dmem wave_dmem test_crypt wave_crypt test_mips_cpu wave_mips_cpu test_cpu wave_cpu test_dot_product wave_dot_product assemble assemble_dot_product assemble_with_comments test_full test_dot_product_full
