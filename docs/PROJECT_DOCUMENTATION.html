@@ -1,0 +1,804 @@
+<h1
+id="single-cycle-mips-processor---complete-project-documentation">Single-Cycle
+MIPS Processor - Complete Project Documentation</h1>
+<p><strong>Authors:</strong> Artin Zareie | Mohsen Mirzaei<br />
+<strong>Date:</strong> August 2025<br />
+<strong>Course:</strong> Computer Architecture Project 2</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#project-overview">Project Overview</a></li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#instruction-set-architecture-isa">Instruction Set
+Architecture (ISA)</a></li>
+<li><a href="#cpu-architecture">CPU Architecture</a></li>
+<li><a href="#component-documentation">Component Documentation</a></li>
+<li><a href="#memory-system">Memory System</a></li>
+<li><a href="#development-tools">Development Tools</a></li>
+<li><a href="#testing-and-verification">Testing and
+Verification</a></li>
+<li><a href="#example-programs">Example Programs</a></li>
+<li><a href="#build-and-simulation">Build and Simulation</a></li>
+<li><a href="#design-decisions-and-features">Design Decisions and
+Features</a></li>
+<li><a href="#future-enhancements">Future Enhancements</a></li>
+</ol>
+<hr />
+<h2 id="project-overview">Project Overview</h2>
+<p>This project implements a <strong>single-cycle MIPS
+processor</strong> in Verilog HDL. The processor executes each
+instruction in exactly one clock cycle, providing a simplified but
+educational implementation of the classic MIPS architecture.</p>
+<h3 id="key-features">Key Features</h3>
+<ul>
+<li><strong>Single-cycle execution</strong>: All instructions complete
+in one clock cycle</li>
+<li><strong>32-bit MIPS architecture</strong>: Full 32-bit data and
+address paths</li>
+<li><strong>Comprehensive instruction set</strong>: R-type, I-type, and
+J-type instructions</li>
+<li><strong>Custom crypto instructions</strong>: Hardware-accelerated
+encryption/decryption</li>
+<li><strong>Complete memory hierarchy</strong>: Instruction and data
+memory subsystems</li>
+<li><strong>Full simulation environment</strong>: Comprehensive
+testbenches and verification tools</li>
+<li><strong>Assembly toolchain</strong>: Custom assembler for converting
+MIPS assembly to machine code</li>
+</ul>
+<h3 id="educational-goals">Educational Goals</h3>
+<p>The processor serves as an educational platform for understanding: -
+Computer architecture fundamentals - Instruction set design and
+implementation - Datapath and control unit design - Memory hierarchy
+organization - Hardware description language (Verilog) development -
+Digital design verification methodologies</p>
+<hr />
+<h2 id="project-structure">Project Structure</h2>
+<pre><code>single-cycle-mips/
+├── docs/                    # Documentation files
+│   ├── ALU.md              # ALU component documentation
+│   ├── ControlUnit.md      # Control unit documentation
+│   ├── Crypt.md            # Crypto unit documentation
+│   ├── DataMem.md          # Data memory documentation
+│   ├── DRAM.md             # DRAM module documentation
+│   ├── GPRF.md             # General Purpose Register File documentation
+│   ├── ImmExt.md           # Immediate extension unit documentation
+│   ├── InstMem.md          # Instruction memory documentation
+│   ├── ISA.md              # Instruction Set Architecture specification
+│   ├── MIPS_CPU.md         # Top-level CPU documentation
+│   ├── Mux.md              # Multiplexer documentation
+│   └── PROJECT_DOCUMENTATION.md  # This comprehensive documentation
+├── src/                    # Source code directory
+│   ├── mips_cpu.v         # Top-level CPU module
+│   ├── core/              # Core processor components
+│   │   ├── alu_control.v  # ALU control unit
+│   │   ├── alu.v          # Arithmetic Logic Unit
+│   │   ├── control_unit.v # Main control unit
+│   │   ├── crypt.v        # Cryptographic unit
+│   │   ├── immext.v       # Immediate extension unit
+│   │   ├── program_counter.v # Program counter
+│   │   └── reg_file.v     # Register file
+│   ├── helpers/           # Helper modules
+│   │   ├── mux21.v        # 2:1 multiplexer
+│   │   └── mux41.v        # 4:1 multiplexer
+│   └── mem/               # Memory subsystem
+│       ├── dmem.v         # Data memory
+│       ├── dram.v         # DRAM controller
+│       └── imem.v         # Instruction memory
+├── sim/                   # Simulation files
+│   ├── tb/                # Testbench files
+│   │   ├── alu_tb.v       # ALU testbench
+│   │   ├── crypt_tb.v     # Crypto unit testbench
+│   │   ├── dmem_tb.v      # Data memory testbench
+│   │   ├── dram_tb.v      # DRAM testbench
+│   │   ├── gprf_tb.v      # Register file testbench
+│   │   ├── imem_tb.v      # Instruction memory testbench
+│   │   ├── immext_tb.v    # Immediate extension testbench
+│   │   ├── mips_cpu_tb.v  # CPU testbench
+│   │   ├── mux21_tb.v     # 2:1 mux testbench
+│   │   ├── mux41_tb.v     # 4:1 mux testbench
+│   │   └── tb_InnerProduct.v # Dot product test
+│   └── stimuli/           # Test stimulus files
+│       ├── alu_ports.csv
+│       ├── assembled.hex
+│       ├── crypt_ports.csv
+│       ├── dram_ports.csv
+│       ├── gprf_ports.csv
+│       └── immext_ports.csv
+├── asm-codes/             # Assembly code examples
+│   ├── asm-code.asm       # Basic assembly examples
+│   ├── dot-product.asm    # Dot product implementation
+│   ├── dot-product.hex    # Assembled dot product
+│   ├── final-test.asm     # Final test program
+│   └── final-test.hex     # Assembled final test
+├── build/                 # Build output directory
+├── refs/                  # Reference documents
+├── assembler.py           # MIPS assembler tool
+├── playground.py          # Development playground
+└── makefile              # Build automation</code></pre>
+<hr />
+<h2 id="instruction-set-architecture-isa">Instruction Set Architecture
+(ISA)</h2>
+<p>The processor implements a subset of the MIPS32 instruction set with
+custom extensions for cryptographic operations.</p>
+<h3 id="instruction-formats">Instruction Formats</h3>
+<h4 id="r-type-instructions">R-Type Instructions</h4>
+<pre><code>| opcode (6) | rs (5) | rt (5) | rd (5) | shamt (5) | funct (6) |
+|    0x00    |        |        |        |           |           |</code></pre>
+<h4 id="i-type-instructions">I-Type Instructions</h4>
+<pre><code>| opcode (6) | rs (5) | rt (5) | immediate (16) |
+|            |        |        |                |</code></pre>
+<h4 id="j-type-instructions">J-Type Instructions</h4>
+<pre><code>| opcode (6) | address (26) |
+|            |              |</code></pre>
+<h3 id="supported-instructions">Supported Instructions</h3>
+<h4 id="arithmetic-operations">Arithmetic Operations</h4>
+<ul>
+<li><strong>add rd, rs, rt</strong>: Add two registers</li>
+<li><strong>addi rt, rs, imm</strong>: Add immediate to register</li>
+<li><strong>sub rd, rs, rt</strong>: Subtract two registers</li>
+<li><strong>subi rt, rs, imm</strong>: Subtract immediate from register
+(alias for addi with negative immediate)</li>
+<li><strong>mul rd, rs, rt</strong>: Multiply two registers</li>
+</ul>
+<h4 id="logical-operations">Logical Operations</h4>
+<ul>
+<li><strong>and rd, rs, rt</strong>: Bitwise AND</li>
+<li><strong>or rd, rs, rt</strong>: Bitwise OR</li>
+<li><strong>xor rd, rs, rt</strong>: Bitwise XOR</li>
+</ul>
+<h4 id="shift-and-rotate-operations">Shift and Rotate Operations</h4>
+<ul>
+<li><strong>sll rd, rt, shamt</strong>: Shift left logical
+(immediate)</li>
+<li><strong>srl rd, rt, shamt</strong>: Shift right logical
+(immediate)</li>
+<li><strong>sra rd, rt, shamt</strong>: Shift right arithmetic
+(immediate)</li>
+<li><strong>sllv rd, rt, rs</strong>: Shift left logical (variable)</li>
+<li><strong>srlv rd, rt, rs</strong>: Shift right logical
+(variable)</li>
+<li><strong>srav rd, rt, rs</strong>: Shift right arithmetic
+(variable)</li>
+<li><strong>rol rd, rt, shamt</strong>: Rotate left (immediate)</li>
+<li><strong>ror rd, rt, shamt</strong>: Rotate right (immediate)</li>
+<li><strong>rolv rd, rt, rs</strong>: Rotate left (variable)</li>
+<li><strong>rorv rd, rt, rs</strong>: Rotate right (variable)</li>
+</ul>
+<h4 id="memory-operations">Memory Operations</h4>
+<ul>
+<li><strong>lw rt, offset(rs)</strong>: Load word from memory</li>
+<li><strong>sw rt, offset(rs)</strong>: Store word to memory</li>
+</ul>
+<h4 id="control-transfer-operations">Control Transfer Operations</h4>
+<ul>
+<li><strong>beq rs, rt, label</strong>: Branch if equal</li>
+<li><strong>jmp address</strong>: Unconditional jump</li>
+<li><strong>j address</strong>: Jump (alias for jmp)</li>
+</ul>
+<h4 id="custom-cryptographic-operations">Custom Cryptographic
+Operations</h4>
+<ul>
+<li><strong>enc rd, rs, rt</strong>: Encrypt data (custom
+implementation)</li>
+<li><strong>dec rd, rs, rt</strong>: Decrypt data (custom
+implementation)</li>
+</ul>
+<h3 id="register-conventions">Register Conventions</h3>
+<p>The processor implements 32 general-purpose registers following MIPS
+conventions:</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Number</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$zero</td>
+<td>0</td>
+<td>Always zero</td>
+</tr>
+<tr>
+<td>$at</td>
+<td>1</td>
+<td>Assembler temporary</td>
+</tr>
+<tr>
+<td><span class="math inline"><em>v</em>0−</span>v1</td>
+<td>2-3</td>
+<td>Function return values</td>
+</tr>
+<tr>
+<td><span class="math inline"><em>a</em>0−</span>a3</td>
+<td>4-7</td>
+<td>Function arguments</td>
+</tr>
+<tr>
+<td><span class="math inline"><em>t</em>0−</span>t7</td>
+<td>8-15</td>
+<td>Temporary registers</td>
+</tr>
+<tr>
+<td><span class="math inline"><em>s</em>0−</span>s7</td>
+<td>16-23</td>
+<td>Saved registers</td>
+</tr>
+<tr>
+<td><span class="math inline"><em>t</em>8−</span>t9</td>
+<td>24-25</td>
+<td>More temporaries</td>
+</tr>
+<tr>
+<td><span class="math inline"><em>k</em>0−</span>k1</td>
+<td>26-27</td>
+<td>Kernel registers</td>
+</tr>
+<tr>
+<td>$gp</td>
+<td>28</td>
+<td>Global pointer</td>
+</tr>
+<tr>
+<td>$sp</td>
+<td>29</td>
+<td>Stack pointer</td>
+</tr>
+<tr>
+<td>$fp</td>
+<td>30</td>
+<td>Frame pointer</td>
+</tr>
+<tr>
+<td>$ra</td>
+<td>31</td>
+<td>Return address</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="cpu-architecture">CPU Architecture</h2>
+<h3 id="datapath-overview">Datapath Overview</h3>
+<p>The single-cycle MIPS processor implements a classic 5-stage datapath
+collapsed into a single cycle:</p>
+<ol type="1">
+<li><strong>Instruction Fetch (IF)</strong>: Retrieve instruction from
+memory</li>
+<li><strong>Instruction Decode (ID)</strong>: Decode instruction and
+read registers</li>
+<li><strong>Execute (EX)</strong>: Perform ALU operations</li>
+<li><strong>Memory Access (MEM)</strong>: Access data memory if
+needed</li>
+<li><strong>Write Back (WB)</strong>: Write results back to register
+file</li>
+</ol>
+<h3 id="top-level-interface">Top-Level Interface</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MIPS_CPU<span class="op">(</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="dt">wire</span> clk<span class="op">,</span>                    <span class="co">// System clock</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="dt">wire</span> reset<span class="op">,</span>                  <span class="co">// Synchronous reset</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">wire</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> pc_debug<span class="op">,</span>           <span class="co">// Current PC value (for debugging)</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">wire</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> instruction_debug<span class="op">,</span>  <span class="co">// Current instruction (for debugging)</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">wire</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> alu_result_debug<span class="op">,</span>   <span class="co">// ALU result (for debugging)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">wire</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> mem_data_debug      <span class="co">// Memory read data (for debugging)</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<h3 id="datapath-components">Datapath Components</h3>
+<h4 id="program-counter-pc-management">Program Counter (PC)
+Management</h4>
+<ul>
+<li><strong>PC+4 calculation</strong>: Sequential instruction
+addressing</li>
+<li><strong>Branch address</strong>:
+<code>PC + 4 + (sign_ext_imm &lt;&lt; 2)</code></li>
+<li><strong>Jump address</strong>:
+<code>{PC[31:28], instruction[25:0], 2'b00}</code></li>
+<li><strong>PC source selection</strong>: 4:1 mux controlled by
+branch/jump logic</li>
+</ul>
+<h4 id="control-path">Control Path</h4>
+<p>The control unit generates all necessary control signals based on the
+instruction opcode and function code: - Register write enable and
+destination selection - ALU operation selection - Memory read/write
+controls - Branch and jump controls - Immediate extension control</p>
+<h4 id="data-path">Data Path</h4>
+<ul>
+<li>32-bit wide data paths throughout</li>
+<li>Multiple multiplexers for data routing</li>
+<li>Support for both register-register and register-immediate
+operations</li>
+</ul>
+<hr />
+<h2 id="component-documentation">Component Documentation</h2>
+<h3 id="control-unit">Control Unit</h3>
+<p><strong>Module</strong>: <code>ControlUnit</code><br />
+<strong>File</strong>: <code>src/core/control_unit.v</code></p>
+<p>The control unit is the brain of the processor, generating all
+control signals based on the instruction opcode and function code.</p>
+<p><strong>Interface</strong>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ControlUnit<span class="op">(</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">5</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> opcode<span class="op">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">5</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> funct<span class="op">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> Branch<span class="op">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> Jump<span class="op">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> MemRead<span class="op">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> MemWrite<span class="op">,</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> <span class="op">[</span><span class="dv">1</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> RegWriteSrc<span class="op">,</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> RegWrite<span class="op">,</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> <span class="op">[</span><span class="dv">1</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> RegDst<span class="op">,</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> ALUSrc<span class="op">,</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> SignExtend<span class="op">,</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> ShiftOp<span class="op">,</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> VarShift</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<p><strong>Functionality</strong>: - Decodes instruction opcodes and
+function codes - Generates control signals for all datapath components -
+Handles special cases for shift/rotate operations - Supports both
+register and immediate operand modes</p>
+<h3 id="arithmetic-logic-unit-alu">Arithmetic Logic Unit (ALU)</h3>
+<p><strong>Module</strong>: <code>ALU</code><br />
+<strong>File</strong>: <code>src/core/alu.v</code></p>
+<p>The ALU performs all arithmetic, logical, shift, and rotate
+operations.</p>
+<p><strong>Interface</strong>:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ALU<span class="op">(</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> a<span class="op">,</span> b<span class="op">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">3</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> alu_op<span class="op">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="dt">reg</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> result<span class="op">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> zero</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<p><strong>Supported Operations</strong>: - Arithmetic: ADD, SUB, MUL -
+Logical: AND, OR, XOR - Shifts: SLL, SRL, SRA - Rotates: ROL, ROR -
+Comparison: equality check for branches</p>
+<h3 id="register-file-gprf">Register File (GPRF)</h3>
+<p><strong>Module</strong>: <code>RegFile</code><br />
+<strong>File</strong>: <code>src/core/reg_file.v</code></p>
+<p>32-register general-purpose register file with dual read ports and
+single write port.</p>
+<p><strong>Interface</strong>:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> RegFile<span class="op">(</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> clk<span class="op">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> reset<span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">4</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> read_addr1<span class="op">,</span> read_addr2<span class="op">,</span> write_addr<span class="op">,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> write_data<span class="op">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> write_enable<span class="op">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> read_data1<span class="op">,</span> read_data2</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<p><strong>Features</strong>: - Dual-port read capability - Single-port
+write capability - Register $0 hardwired to zero - Synchronous write,
+asynchronous read</p>
+<h3 id="memory-subsystem">Memory Subsystem</h3>
+<h4 id="instruction-memory-instmem">Instruction Memory (InstMem)</h4>
+<p><strong>Module</strong>: <code>InstMem</code><br />
+<strong>File</strong>: <code>src/mem/imem.v</code></p>
+<p>Stores program instructions with word-addressed access.</p>
+<h4 id="data-memory-datamem">Data Memory (DataMem)</h4>
+<p><strong>Module</strong>: <code>DataMem</code><br />
+<strong>File</strong>: <code>src/mem/dmem.v</code></p>
+<p>Stores program data with load/store operations.</p>
+<h4 id="dram-controller">DRAM Controller</h4>
+<p><strong>Module</strong>: <code>DRAM</code><br />
+<strong>File</strong>: <code>src/mem/dram.v</code></p>
+<p>Low-level memory interface providing byte-addressable access.</p>
+<h3 id="cryptographic-unit">Cryptographic Unit</h3>
+<p><strong>Module</strong>: <code>Crypt</code><br />
+<strong>File</strong>: <code>src/core/crypt.v</code></p>
+<p>Custom hardware acceleration for encryption/decryption
+operations.</p>
+<p><strong>Interface</strong>:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> Crypt<span class="op">(</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> data<span class="op">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> key<span class="op">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> encrypt<span class="op">,</span> <span class="co">// 1 for encrypt, 0 for decrypt</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> result</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<h3 id="immediate-extension-unit">Immediate Extension Unit</h3>
+<p><strong>Module</strong>: <code>ImmExt</code><br />
+<strong>File</strong>: <code>src/core/immext.v</code></p>
+<p>Extends 16-bit immediates to 32-bit values with sign or zero
+extension.</p>
+<h3 id="helper-modules">Helper Modules</h3>
+<h4 id="multiplexer">2:1 Multiplexer</h4>
+<p><strong>Module</strong>: <code>Mux21</code><br />
+<strong>File</strong>: <code>src/helpers/mux21.v</code></p>
+<h4 id="multiplexer-1">4:1 Multiplexer</h4>
+<p><strong>Module</strong>: <code>Mux41</code><br />
+<strong>File</strong>: <code>src/helpers/mux41.v</code></p>
+<hr />
+<h2 id="memory-system">Memory System</h2>
+<h3 id="memory-organization">Memory Organization</h3>
+<p>The processor uses a Harvard architecture with separate instruction
+and data memories:</p>
+<h4 id="instruction-memory">Instruction Memory</h4>
+<ul>
+<li><strong>Size</strong>: Configurable (default 1024 words)</li>
+<li><strong>Width</strong>: 32 bits</li>
+<li><strong>Addressing</strong>: Word-aligned (addresses in increments
+of 4)</li>
+<li><strong>Access</strong>: Read-only during execution</li>
+<li><strong>Initialization</strong>: Loaded from HEX files</li>
+</ul>
+<h4 id="data-memory">Data Memory</h4>
+<ul>
+<li><strong>Size</strong>: Configurable (default 1024 words)</li>
+<li><strong>Width</strong>: 32 bits</li>
+<li><strong>Addressing</strong>: Byte-addressable with word
+alignment</li>
+<li><strong>Access</strong>: Read/write operations</li>
+<li><strong>Initialization</strong>: Typically initialized to zero</li>
+</ul>
+<h3 id="memory-interface">Memory Interface</h3>
+<p>Both memories use a unified DRAM interface for consistency:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> DRAM<span class="op">(</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> clk<span class="op">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> addr<span class="op">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> wdata<span class="op">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> we<span class="op">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> rdata</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<h3 id="memory-map">Memory Map</h3>
+<table>
+<thead>
+<tr>
+<th>Address Range</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00000000 - 0x000003FF</td>
+<td>Instruction Memory (1024 words)</td>
+</tr>
+<tr>
+<td>0x10000000 - 0x100003FF</td>
+<td>Data Memory (1024 words)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="development-tools">Development Tools</h2>
+<h3 id="mips-assembler">MIPS Assembler</h3>
+<p><strong>File</strong>: <code>assembler.py</code></p>
+<p>A comprehensive Python-based assembler that converts MIPS assembly
+language to machine code.</p>
+<h4 id="features">Features</h4>
+<ul>
+<li>Support for all ISA instructions</li>
+<li>Label resolution for branches and jumps</li>
+<li>Register name aliasing (both $name and $number formats)</li>
+<li>Comprehensive error checking and reporting</li>
+<li>Multiple output formats (binary, hexadecimal)</li>
+</ul>
+<h4 id="usage">Usage</h4>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> assembler.py input.asm <span class="at">-o</span> output.hex</span></code></pre></div>
+<h4 id="supported-assembly-syntax">Supported Assembly Syntax</h4>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode mips"><code class="sourceCode mips"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Comments start with #</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ot">label:</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">addi</span> <span class="dt">$t0</span>, <span class="dt">$zero</span>, <span class="dv">10</span>    <span class="co"># Add immediate</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lw</span> <span class="dt">$t1</span>, <span class="dv">0</span>(<span class="dt">$sp</span>)         <span class="co"># Load word</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">beq</span> <span class="dt">$t0</span>, <span class="dt">$t1</span>, label    <span class="co"># Branch if equal</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    jmp end                <span class="co"># Jump</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="ot">end:</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># End of program</span></span></code></pre></div>
+<h3 id="build-system">Build System</h3>
+<p><strong>File</strong>: <code>makefile</code></p>
+<p>Comprehensive makefile supporting: - Individual component testing -
+Full system simulation - Waveform generation - Automated test
+execution</p>
+<h4 id="key-targets">Key Targets</h4>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-gprf          <span class="co"># Test register file</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-alu           <span class="co"># Test ALU</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-mips-cpu      <span class="co"># Test complete CPU</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-dot-product   <span class="co"># Test dot product program</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean              <span class="co"># Clean build artifacts</span></span></code></pre></div>
+<h3 id="simulation-environment">Simulation Environment</h3>
+<p>The project uses <strong>Icarus Verilog</strong> for simulation and
+<strong>GTKWave</strong> for waveform viewing.</p>
+<h4 id="simulation-flow">Simulation Flow</h4>
+<ol type="1">
+<li><strong>Compilation</strong>: Verilog files compiled with
+<code>iverilog</code></li>
+<li><strong>Simulation</strong>: Test execution with
+<code>vvp</code></li>
+<li><strong>Waveform Generation</strong>: VCD files for debugging</li>
+<li><strong>Analysis</strong>: Waveform viewing with
+<code>gtkwave</code></li>
+</ol>
+<hr />
+<h2 id="testing-and-verification">Testing and Verification</h2>
+<h3 id="testing-strategy">Testing Strategy</h3>
+<p>The project employs a comprehensive testing strategy:</p>
+<ol type="1">
+<li><strong>Unit Testing</strong>: Individual component
+verification</li>
+<li><strong>Integration Testing</strong>: Inter-component
+communication</li>
+<li><strong>System Testing</strong>: Complete processor
+functionality</li>
+<li><strong>Program Testing</strong>: Real assembly programs
+execution</li>
+</ol>
+<h3 id="testbench-architecture">Testbench Architecture</h3>
+<p>Each component has a dedicated testbench following a consistent
+pattern:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> component_tb<span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Test signals</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">reg</span> clk<span class="op">,</span> reset<span class="op">;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">reg</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> test_input<span class="op">;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">wire</span> <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> test_output<span class="op">;</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Component instantiation</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    Component uut <span class="op">(</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        .clk<span class="op">(</span>clk<span class="op">),</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        .reset<span class="op">(</span>reset<span class="op">),</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>        .<span class="dt">input</span><span class="op">(</span>test_input<span class="op">),</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        .<span class="dt">output</span><span class="op">(</span>test_output<span class="op">)</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Clock generation</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">always</span> <span class="bn">#5</span> clk <span class="op">=</span> <span class="op">~</span>clk<span class="op">;</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Test sequence</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">initial</span> <span class="kw">begin</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Test cases</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">$dumpfile</span><span class="op">(</span><span class="st">&quot;build/component_tb.vcd&quot;</span><span class="op">);</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>        <span class="dt">$dumpvars</span><span class="op">(</span><span class="dv">0</span><span class="op">,</span> component_tb<span class="op">);</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Simulation</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>        <span class="bn">#1000</span> <span class="dt">$finish</span><span class="op">;</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">end</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="kw">endmodule</span></span></code></pre></div>
+<h3 id="test-coverage">Test Coverage</h3>
+<h4 id="component-tests">Component Tests</h4>
+<ul>
+<li><strong>ALU</strong>: All arithmetic, logical, shift, and rotate
+operations</li>
+<li><strong>Control Unit</strong>: All instruction types and special
+cases</li>
+<li><strong>Register File</strong>: Read/write operations, hazard
+conditions</li>
+<li><strong>Memory</strong>: Load/store operations, addressing
+modes</li>
+<li><strong>Crypto Unit</strong>: Encryption/decryption
+functionality</li>
+</ul>
+<h4 id="system-tests">System Tests</h4>
+<ul>
+<li><strong>Instruction Execution</strong>: Complete instruction set
+verification</li>
+<li><strong>Program Execution</strong>: Real programs like dot product
+calculation</li>
+<li><strong>Edge Cases</strong>: Boundary conditions and error
+scenarios</li>
+</ul>
+<h3 id="verification-methodology">Verification Methodology</h3>
+<ol type="1">
+<li><strong>Functional Verification</strong>: Correct operation
+verification</li>
+<li><strong>Timing Verification</strong>: Single-cycle timing
+constraints</li>
+<li><strong>Coverage Analysis</strong>: Instruction and branch
+coverage</li>
+<li><strong>Regression Testing</strong>: Automated test suite
+execution</li>
+</ol>
+<hr />
+<h2 id="example-programs">Example Programs</h2>
+<h3 id="dot-product-calculator">Dot Product Calculator</h3>
+<p><strong>File</strong>: <code>asm-codes/dot-product.asm</code></p>
+<p>Demonstrates vector operations and memory access patterns:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode mips"><code class="sourceCode mips"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dot Product Calculator</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Computes the dot product of two 4-element vectors</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Vector A stored at word addresses 0, 1, 2, 3</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Vector B stored at word addresses 4, 5, 6, 7</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Result stored in register $s6</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize vector pointers</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="kw">addi</span> <span class="dt">$s0</span>, <span class="dt">$0</span>, <span class="dv">0</span>      <span class="co"># $s0 = base address of Vector A</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="kw">addi</span> <span class="dt">$s1</span>, <span class="dt">$0</span>, <span class="dv">16</span>     <span class="co"># $s1 = base address of Vector B</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize loop control variables</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="kw">addi</span> <span class="dt">$s2</span>, <span class="dt">$0</span>, <span class="dv">4</span>      <span class="co"># $s2 = loop limit (4 elements)</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="kw">addi</span> <span class="dt">$s3</span>, <span class="dt">$0</span>, <span class="dv">0</span>      <span class="co"># $s3 = loop counter</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="kw">addi</span> <span class="dt">$s6</span>, <span class="dt">$0</span>, <span class="dv">0</span>      <span class="co"># $s6 = accumulator for result</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="ot">loop:</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Load current elements from both vectors</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lw</span> <span class="dt">$s4</span>, <span class="dv">0</span>(<span class="dt">$s0</span>)       <span class="co"># $s4 = A[i]</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lw</span> <span class="dt">$s5</span>, <span class="dv">0</span>(<span class="dt">$s1</span>)       <span class="co"># $s5 = B[i]</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute element-wise product</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul</span> <span class="dt">$t0</span>, <span class="dt">$s4</span>, <span class="dt">$s5</span>    <span class="co"># $t0 = A[i] * B[i]</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add to running sum</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">add</span> <span class="dt">$s6</span>, <span class="dt">$s6</span>, <span class="dt">$t0</span>    <span class="co"># $s6 += A[i] * B[i]</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Move to next elements</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">addi</span> <span class="dt">$s0</span>, <span class="dt">$s0</span>, <span class="dv">4</span>     <span class="co"># Increment Vector A pointer</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">addi</span> <span class="dt">$s1</span>, <span class="dt">$s1</span>, <span class="dv">4</span>     <span class="co"># Increment Vector B pointer</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">addi</span> <span class="dt">$s3</span>, <span class="dt">$s3</span>, <span class="dv">1</span>     <span class="co"># Increment loop counter</span></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check loop condition</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">beq</span> <span class="dt">$s3</span>, <span class="dt">$s2</span>, done   <span class="co"># Exit if processed all elements</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    jmp loop             <span class="co"># Continue loop</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a><span class="ot">done:</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Result is in $s6</span></span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># End of program</span></span></code></pre></div>
+<p>This program demonstrates: - Memory addressing and pointer arithmetic
+- Loop control structures - Arithmetic operations (multiplication and
+addition) - Conditional branching - Register usage conventions</p>
+<h3 id="final-test-program">Final Test Program</h3>
+<p><strong>File</strong>: <code>asm-codes/final-test.asm</code></p>
+<p>Comprehensive test exercising all instruction types and processor
+features.</p>
+<hr />
+<h2 id="build-and-simulation">Build and Simulation</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li><strong>Icarus Verilog</strong>: Open-source Verilog simulator</li>
+<li><strong>GTKWave</strong>: Waveform viewer</li>
+<li><strong>Python 3.x</strong>: For assembler tool</li>
+<li><strong>Make</strong>: Build automation</li>
+</ul>
+<h3 id="installation-ubuntudebian">Installation (Ubuntu/Debian)</h3>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install iverilog gtkwave python3 make</span></code></pre></div>
+<h3 id="build-commands">Build Commands</h3>
+<h4 id="component-testing">Component Testing</h4>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Test individual components</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-alu           <span class="co"># Test ALU functionality</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-gprf          <span class="co"># Test register file</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-control       <span class="co"># Test control unit</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-memory        <span class="co"># Test memory subsystem</span></span></code></pre></div>
+<h4 id="system-testing">System Testing</h4>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Test complete CPU</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-mips-cpu      <span class="co"># Basic CPU functionality</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-dot-product   <span class="co"># Dot product program execution</span></span></code></pre></div>
+<h4 id="assembly-and-simulation">Assembly and Simulation</h4>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assemble program</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> assembler.py asm-codes/program.asm <span class="at">-o</span> build/program.hex</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Run simulation</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> PROGRAM=program test-mips-cpu</span></code></pre></div>
+<h4 id="waveform-analysis">Waveform Analysis</h4>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate and view waveforms</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test-mips-cpu</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="ex">gtkwave</span> build/mips_cpu_tb.vcd</span></code></pre></div>
+<h3 id="debugging-workflow">Debugging Workflow</h3>
+<ol type="1">
+<li><strong>Write/modify assembly program</strong></li>
+<li><strong>Assemble to machine code</strong></li>
+<li><strong>Run simulation</strong></li>
+<li><strong>Analyze waveforms</strong></li>
+<li><strong>Debug and iterate</strong></li>
+</ol>
+<h3 id="performance-analysis">Performance Analysis</h3>
+<p>The single-cycle design allows for: - <strong>Clock Period</strong>:
+Determined by longest combinational path - <strong>Throughput</strong>:
+One instruction per clock cycle - <strong>Latency</strong>: One clock
+cycle per instruction</p>
+<hr />
+<h2 id="design-decisions-and-features">Design Decisions and
+Features</h2>
+<h3 id="single-cycle-implementation">Single-Cycle Implementation</h3>
+<p><strong>Advantages</strong>: - Simplified control logic - Predictable
+timing - Educational clarity - No pipeline hazards</p>
+<p><strong>Trade-offs</strong>: - Lower maximum clock frequency - Some
+hardware duplication - Longer critical path</p>
+<h3 id="custom-extensions">Custom Extensions</h3>
+<h4 id="cryptographic-instructions">Cryptographic Instructions</h4>
+<p>The processor includes custom encryption/decryption instructions
+demonstrating: - ISA extensibility - Custom functional units -
+Application-specific acceleration</p>
+<h4 id="enhanced-shiftrotate-operations">Enhanced Shift/Rotate
+Operations</h4>
+<p>Complete set of shift and rotate operations including: - Immediate
+and variable shift amounts - Logical and arithmetic shifts - Left and
+right rotations</p>
+<h3 id="memory-architecture">Memory Architecture</h3>
+<p>Harvard architecture chosen for: - Simplified single-cycle
+implementation - Clear separation of instruction and data - Educational
+demonstration of memory hierarchy</p>
+<h3 id="register-file-design">Register File Design</h3>
+<p>Dual-port read architecture enables: - Simultaneous access to two
+source operands - Efficient R-type instruction execution - Single-cycle
+operation support</p>
+<hr />
+<h2 id="future-enhancements">Future Enhancements</h2>
+<h3 id="performance-improvements">Performance Improvements</h3>
+<ol type="1">
+<li><strong>Pipelined Implementation</strong>: Convert to 5-stage
+pipeline for higher throughput</li>
+<li><strong>Cache Memory</strong>: Add instruction and data caches</li>
+<li><strong>Branch Prediction</strong>: Implement simple branch
+prediction mechanisms</li>
+<li><strong>Forwarding Logic</strong>: Add data forwarding for pipeline
+hazards</li>
+</ol>
+<h3 id="isa-extensions">ISA Extensions</h3>
+<ol type="1">
+<li><strong>Floating-Point Unit</strong>: Add IEEE 754 floating-point
+support</li>
+<li><strong>Vector Instructions</strong>: SIMD operations for parallel
+computation</li>
+<li><strong>Privileged Instructions</strong>: Supervisor mode and system
+calls</li>
+<li><strong>Advanced Crypto</strong>: AES, SHA hardware
+acceleration</li>
+</ol>
+<h3 id="development-tools-1">Development Tools</h3>
+<ol type="1">
+<li><strong>Debugger Interface</strong>: GDB-compatible debugging
+support</li>
+<li><strong>Profiling Tools</strong>: Performance analysis and
+optimization</li>
+<li><strong>Advanced Assembler</strong>: Macro support, linking
+capabilities</li>
+<li><strong>C Compiler Backend</strong>: Generate MIPS code from C
+programs</li>
+</ol>
+<h3 id="system-integration">System Integration</h3>
+<ol type="1">
+<li><strong>Peripheral Interfaces</strong>: UART, SPI, I2C
+controllers</li>
+<li><strong>Interrupt Controller</strong>: Hierarchical interrupt
+management</li>
+<li><strong>Memory Management</strong>: Virtual memory and
+protection</li>
+<li><strong>Multi-core Support</strong>: Symmetric multiprocessing
+capabilities</li>
+</ol>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>This single-cycle MIPS processor project successfully demonstrates
+the fundamental concepts of computer architecture and digital design.
+The implementation provides a solid foundation for understanding:</p>
+<ul>
+<li>Instruction set architecture design</li>
+<li>Processor datapath and control logic</li>
+<li>Memory system organization</li>
+<li>Hardware description language development</li>
+<li>Digital system verification methodologies</li>
+</ul>
+<p>The project serves as an excellent educational platform and a
+stepping stone for more advanced processor implementations. The clean,
+modular design facilitates easy extension and modification for future
+enhancements.</p>
+<p>The comprehensive toolchain, including assembler and simulation
+environment, provides a complete development ecosystem for experimenting
+with computer architecture concepts and validating design decisions.</p>
+<hr />
+<h2 id="references">References</h2>
+<ol type="1">
+<li><p><strong>Patterson, D. A., &amp; Hennessy, J. L.</strong> (2020).
+<em>Computer organization and design: the hardware/software
+interface</em>. Morgan Kaufmann.</p></li>
+<li><p><strong>Harris, D. M., &amp; Harris, S. L.</strong> (2021).
+<em>Digital design and computer architecture</em>. Morgan
+Kaufmann.</p></li>
+<li><p><strong>MIPS Technologies Inc.</strong> (2001). <em>MIPS32™
+Architecture For Programmers Volume I: Introduction to the MIPS32™
+Architecture</em>.</p></li>
+<li><p><strong>Vahid, F.</strong> (2010). <em>Digital design with RTL
+design, VHDL, and Verilog</em>. John Wiley &amp; Sons.</p></li>
+</ol>
+<hr />
+<p><strong>End of Documentation</strong></p>
