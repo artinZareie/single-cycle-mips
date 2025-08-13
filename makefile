@@ -183,18 +183,18 @@ count:
 # Assembly and test targets
 assemble: assembler.py
 	@echo "Running assembler..."
-	python assembler.py asm-codes/final-test.asm sim/stimuli/test_program.hex clean
-	@echo "Assembly complete! Output: sim/stimuli/test_program.hex"
+	python assembler.py asm-codes/final-test.asm sim/stimuli/assembled.hex clean
+	@echo "Assembly complete! Output: sim/stimuli/assembled.hex"
 
 assemble_dot_product: assembler.py
 	@echo "Assembling dot product program..."
-	python assembler.py asm-codes/dot-product.asm sim/stimuli/test_program.hex clean
-	@echo "Dot product assembly complete! Output: sim/stimuli/test_program.hex"
+	python assembler.py asm-codes/dot-product.asm sim/stimuli/assembled.hex clean
+	@echo "Dot product assembly complete! Output: sim/stimuli/assembled.hex"
 
 assemble_with_comments: assembler.py
 	@echo "Running assembler with full comments..."
-	python assembler.py asm-codes/final-test.asm sim/stimuli/test_program_commented.hex full
-	@echo "Assembly complete! Output: sim/stimuli/test_program_commented.hex"
+	python assembler.py asm-codes/final-test.asm sim/stimuli/assembled_commented.hex full
+	@echo "Assembly complete! Output: sim/stimuli/assembled_commented.hex"
 
 # Full test flow: assemble then test CPU
 test_full: assemble test_mips_cpu
