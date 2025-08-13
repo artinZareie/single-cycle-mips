@@ -245,7 +245,11 @@ class MIPSAssembler:
             for pc, tokens in instructions:
                 try:
                     code = self.assemble_instruction(tokens, pc)
-                    instruction_text = ' '.join(tokens)
+                    # Format instruction text with proper MIPS syntax (commas between operands)
+                    if len(tokens) > 1:
+                        instruction_text = tokens[0] + ' ' + ', '.join(tokens[1:])
+                    else:
+                        instruction_text = tokens[0]
                     machine_code.append((f"{code:08X}", pc, instruction_text))
                 except Exception as e:
                     print(f"Error at PC {pc:08X} with instruction {' '.join(tokens)}: {e}")
