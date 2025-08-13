@@ -156,6 +156,9 @@ class MIPSAssembler:
                 else:
                     offset = self.parse_immediate(target_str)
                 
+                if offset < -32768 or offset > 32767:
+                    raise ValueError(f"Branch target '{target_str}' is too far for beq instruction.")
+                
                 return self.encode_i_type(opcode, rs, rt, offset)
             
             elif instruction in ['addi', 'subi']:
