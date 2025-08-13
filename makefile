@@ -43,6 +43,10 @@ DMEM_TB = sim/tb/dmem_tb.v
 CRYPT_RTL = src/core/crypt.v
 CRYPT_TB = sim/tb/crypt_tb.v
 
+# MIPS CPU (top module) specific files
+MIPS_CPU_RTL = $(RTL_FILES)
+MIPS_CPU_TB = sim/tb/mips_cpu_tb.v
+
 all: sim
 
 sim: $(RTL_FILES) $(TB_FILES)
@@ -50,8 +54,23 @@ sim: $(RTL_FILES) $(TB_FILES)
 	$(VERILOG_COMPILER) $(VFLAGS) $(RTL_FILES) $(TB_FILES)
 	$(SIMULATOR) build/sim.out
 
-test_all: test_gprf test_alu test_dram test_immext test_mux21 test_mux41 test_imem test_dmem test_crypt
+test_all: test_gprf test_alu test_dram test_immext test_mux21 test_mux41 test_imem test_dmem test_crypt test_mips_cpu
 	@echo "All module tests completed!"
+
+# MIPS CPU (Top Module) Test
+test_mips_cpu: $(MIPS_CPU_RTL) $(MIPS_CPU_TB)
+	@mkdir -p build
+	@echo "Testing MIPS CPU (Top Module)..."
+	$(VERILOG_COMPILER) -o build/mips_cpu_sim.out $(MIPS_CPU_RTL) $(MIPS_CPU_TB)
+	$(SIMULATOR) build/mips_cpu_sim.out
+
+wave_mips_cpu: test_mips_cpu
+	$(WAVEFORM_VIEWER) build/mips_cpu_tb.vcd &
+
+# Quick CPU test (alias for convenience)
+test_cpu: test_mips_cpu
+
+wave_cpu: wave_mips_cpu
 
 test_gprf: $(GPRF_RTL) $(GPRF_TB)
 	@mkdir -p build
@@ -147,7 +166,22 @@ count:
 	@echo "Total:"
 	@find ./src ./sim -name "*.v" -exec wc -l {} + | tail -1
 
+# Assembly and test targets
+assemble: assembler.py
+	@echo "Running assembler..."
+	python assembler.py asm-codes/final-test.asm sim/stimuli/test_program.hex clean
+	@echo "Assembly complete! Output: sim/stimuli/test_program.hex"
+
+assemble_with_comments: assembler.py
+	@echo "Running assembler with full comments..."
+	python assembler.py asm-codes/final-test.asm sim/stimuli/test_program_commented.hex full
+	@echo "Assembly complete! Output: sim/stimuli/test_program_commented.hex"
+
+# Full test flow: assemble then test CPU
+test_full: assemble test_mips_cpu
+	@echo "Full test flow completed!"
+
 clean:
 	rm -rf build/
 
-.PHONY: all sim clean format test_all test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41 test_imem wave_imem test_dmem wave_dmem test_crypt wave_crypt
+.PHONY: all sim clean format test_all test_gprf wave_gprf wave_sim test_alu wave_alu test_dram wave_dram test_immext wave_immext test_mux21 wave_mux21 test_mux41 wave_mux41 test_imem wave_imem test_dmem wave_dmem test_crypt wave_crypt test_mips_cpu wave_mips_cpu test_cpu wave_cpu assemble assemble_with_comments test_full
