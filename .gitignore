@@ -1,4 +1,5 @@
 build/
 .nvim/
-sim/stimuli/test_program.hex
+sim/stimuli/assembled.hex
 asm-codes/dot-product.hex
+playground.py
