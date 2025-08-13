@@ -19,7 +19,14 @@ wire [31:0] next_pc, pc, pc_plus_4, jump_addr, branch_addr;
 
 // Instruction and control signals
 wire [31:0] instruction;
+wire [5:0] opcode, funct;
 wire [1:0] pc_src_sel, rf_src_sel, reg_dst_sel;
+
+// Extract instruction fields
+assign opcode = instruction[31:26];
+assign funct = instruction[5:0];
+
+
 wire branch_ctrl, jump_ctrl, rf_write_enable, mem_write_enable;
 wire alu_src2_sel, is_signed, shift_op, var_shift;
 wire [3:0] alu_op;
@@ -36,8 +43,8 @@ wire alu_zero;
 
 // Control Unit - Generates all control signals
 ControlUnit control_unit_inst (
-    .opcode(instruction[31:26]),
-    .funct(instruction[5:0]),
+    .opcode(opcode),
+    .funct(funct),
     .Branch(branch_ctrl),
     .Jump(jump_ctrl),
     .MemRead(/* unused */),
@@ -47,12 +54,17 @@ ControlUnit control_unit_inst (
     .RegWrite(rf_write_enable),
     .RegDst(reg_dst_sel),
 
-    .ALUOp(alu_op),
     .ALUSrc(alu_src2_sel),
 
     .SignExtend(is_signed),
     .ShiftOp(shift_op),
     .VarShift(var_shift)
+);
+
+ALUControl alu_control_inst (
+    .opcode(opcode),
+    .funct(funct),
+    .ALUOp(alu_op)
 );
 
 // PC address calculations
