@@ -25,9 +25,15 @@ module tb_InnerProduct();
     parameter CLOCK_PERIOD = 10;  // 100MHz clock
     parameter MAX_CYCLES = 200;   // Maximum simulation cycles
     
-    // Expected test vectors
-    parameter [31:0] VECTOR_A [0:3] = '{32'd1, 32'd2, 32'd3, 32'd4};
-    parameter [31:0] VECTOR_B [0:3] = '{32'd5, 32'd6, 32'd7, 32'd8};
+    // Expected test vectors (using individual parameters instead of arrays)
+    parameter [31:0] VECTOR_A_0 = 32'd1;
+    parameter [31:0] VECTOR_A_1 = 32'd2;
+    parameter [31:0] VECTOR_A_2 = 32'd3;
+    parameter [31:0] VECTOR_A_3 = 32'd4;
+    parameter [31:0] VECTOR_B_0 = 32'd5;
+    parameter [31:0] VECTOR_B_1 = 32'd6;
+    parameter [31:0] VECTOR_B_2 = 32'd7;
+    parameter [31:0] VECTOR_B_3 = 32'd8;
     parameter [31:0] EXPECTED_RESULT = 32'd70; // 1*5 + 2*6 + 3*7 + 4*8
     
     // Instantiate the MIPS CPU
@@ -48,23 +54,27 @@ module tb_InnerProduct();
         // Wait for a few cycles after initialization
         #1;
         
-        // Initialize Vector A at word addresses 0-3
-        dut.dmem_inst.dram_inst.mem[0] = VECTOR_A[0];  // A[0] = 1
-        dut.dmem_inst.dram_inst.mem[1] = VECTOR_A[1];  // A[1] = 2
-        dut.dmem_inst.dram_inst.mem[2] = VECTOR_A[2];  // A[2] = 3
-        dut.dmem_inst.dram_inst.mem[3] = VECTOR_A[3];  // A[3] = 4
+        // Assembly code now uses byte addressing: 0, 4, 8, 12 for Vector A and 16, 20, 24, 28 for Vector B
+        // These map to DRAM memory indices after address translation:
+        // Byte addr 0 → mem[0], Byte addr 4 → mem[1], Byte addr 8 → mem[2], etc.
         
-        // Initialize Vector B at word addresses 4-7
-        dut.dmem_inst.dram_inst.mem[4] = VECTOR_B[0];  // B[0] = 5
-        dut.dmem_inst.dram_inst.mem[5] = VECTOR_B[1];  // B[1] = 6
-        dut.dmem_inst.dram_inst.mem[6] = VECTOR_B[2];  // B[2] = 7
-        dut.dmem_inst.dram_inst.mem[7] = VECTOR_B[3];  // B[3] = 8
+        // Initialize Vector A at byte addresses 0, 4, 8, 12 → memory indices 0, 1, 2, 3
+        dut.dmem_inst.dram_inst.mem[0] = VECTOR_A_0;  // Byte address 0 → A[0] = 1
+        dut.dmem_inst.dram_inst.mem[1] = VECTOR_A_1;  // Byte address 4 → A[1] = 2
+        dut.dmem_inst.dram_inst.mem[2] = VECTOR_A_2;  // Byte address 8 → A[2] = 3
+        dut.dmem_inst.dram_inst.mem[3] = VECTOR_A_3;  // Byte address 12 → A[3] = 4
+        
+        // Initialize Vector B at byte addresses 16, 20, 24, 28 → memory indices 4, 5, 6, 7
+        dut.dmem_inst.dram_inst.mem[4] = VECTOR_B_0;  // Byte address 16 → B[0] = 5
+        dut.dmem_inst.dram_inst.mem[5] = VECTOR_B_1;  // Byte address 20 → B[1] = 6
+        dut.dmem_inst.dram_inst.mem[6] = VECTOR_B_2;  // Byte address 24 → B[2] = 7
+        dut.dmem_inst.dram_inst.mem[7] = VECTOR_B_3;  // Byte address 28 → B[3] = 8
         
         $display("Data memory initialized with test vectors:");
-        $display("Vector A: [%0d, %0d, %0d, %0d] at addresses 0-3", 
-                 VECTOR_A[0], VECTOR_A[1], VECTOR_A[2], VECTOR_A[3]);
-        $display("Vector B: [%0d, %0d, %0d, %0d] at addresses 4-7", 
-                 VECTOR_B[0], VECTOR_B[1], VECTOR_B[2], VECTOR_B[3]);
+        $display("Vector A: [%0d, %0d, %0d, %0d] at byte addresses 0, 4, 8, 12", 
+                 VECTOR_A_0, VECTOR_A_1, VECTOR_A_2, VECTOR_A_3);
+        $display("Vector B: [%0d, %0d, %0d, %0d] at byte addresses 16, 20, 24, 28", 
+                 VECTOR_B_0, VECTOR_B_1, VECTOR_B_2, VECTOR_B_3);
         $display("Expected dot product: %0d", EXPECTED_RESULT);
         $display("");
     end
@@ -99,10 +109,10 @@ module tb_InnerProduct();
                      $time, debug_pc, debug_instruction, debug_alu_result, debug_mem_data);
             
             // Check if we've reached the exit label (PC stops incrementing)
-            if (cycle_count > 10 && debug_pc == 32'h48) begin // exit instruction address
+            if (cycle_count > 10 && debug_pc == 32'h38) begin // exit instruction address (0x38)
                 test_complete = 1;
                 // Read the final result from register $s6 (register 22)
-                final_result = dut.rf_inst.registers[22]; // $s6 is register 22
+                final_result = dut.rf_inst.gpregs[22]; // $s6 is register 22
                 
                 $display("");
                 $display("=== TEST COMPLETED ===");
@@ -121,20 +131,20 @@ module tb_InnerProduct();
         
         if (!test_complete) begin
             $display("TEST TIMEOUT: Maximum cycles (%0d) reached", MAX_CYCLES);
-            final_result = dut.rf_inst.registers[22];
+            final_result = dut.rf_inst.gpregs[22];
             $display("Final result at timeout: %0d", final_result);
         end
         
         $display("");
         $display("=== REGISTER FILE STATE ===");
-        $display("$s0 (r16): %08x", dut.rf_inst.registers[16]);
-        $display("$s1 (r17): %08x", dut.rf_inst.registers[17]);
-        $display("$s2 (r18): %08x", dut.rf_inst.registers[18]);
-        $display("$s3 (r19): %08x", dut.rf_inst.registers[19]);
-        $display("$s4 (r20): %08x", dut.rf_inst.registers[20]);
-        $display("$s5 (r21): %08x", dut.rf_inst.registers[21]);
-        $display("$s6 (r22): %08x (RESULT)", dut.rf_inst.registers[22]);
-        $display("$t0 (r8):  %08x", dut.rf_inst.registers[8]);
+        $display("$s0 (r16): %08x", dut.rf_inst.gpregs[16]);
+        $display("$s1 (r17): %08x", dut.rf_inst.gpregs[17]);
+        $display("$s2 (r18): %08x", dut.rf_inst.gpregs[18]);
+        $display("$s3 (r19): %08x", dut.rf_inst.gpregs[19]);
+        $display("$s4 (r20): %08x", dut.rf_inst.gpregs[20]);
+        $display("$s5 (r21): %08x", dut.rf_inst.gpregs[21]);
+        $display("$s6 (r22): %08x (RESULT)", dut.rf_inst.gpregs[22]);
+        $display("$t0 (r8):  %08x", dut.rf_inst.gpregs[8]);
         
         $finish;
     end
