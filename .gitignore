@@ -3,3 +3,4 @@ build/
 sim/stimuli/assembled.hex
 asm-codes/dot-product.hex
 playground.py
+*.hex
