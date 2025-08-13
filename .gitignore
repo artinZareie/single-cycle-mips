@@ -1,2 +1,4 @@
 build/
 .nvim/
+sim/stimuli/test_program.hex
+asm-codes/dot-product.hex
