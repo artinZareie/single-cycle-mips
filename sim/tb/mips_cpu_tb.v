@@ -42,7 +42,7 @@ MIPS_CPU dut (
     rst = 0;
 
     // Run for N cycles
-    for (i = 0; i < 50; i = i + 1) begin
+    for (i = 0; i < 110; i = i + 1) begin
       @(posedge clk);
       $display("PC=%08x INSTR=%08x", debug_pc, debug_instr);
     end
